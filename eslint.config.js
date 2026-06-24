@@ -54,6 +54,8 @@ export default [
     // add your custom rules here
     rules: {
       'prefer-promise-reject-errors': 'off',
+      'no-empty': 'off',
+      'no-unused-vars': ['error', { vars: 'all', args: 'after-used', caughtErrors: 'none', ignoreRestSiblings: true }],
 
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',

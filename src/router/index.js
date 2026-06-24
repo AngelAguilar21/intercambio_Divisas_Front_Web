@@ -1,4 +1,4 @@
-import { defineRouter } from '#q-app'
+import { route } from 'quasar/wrappers'
 import {
   createMemoryHistory,
   createRouter,
@@ -8,30 +8,30 @@ import {
 
 import routes from './routes.js'
 
-/*
- * If not building with SSR mode, you can
- * directly export the Router instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Router instance.
- */
-
-export default defineRouter((/* { store, ssrContext } */) => {
-  const createHistory = import.meta.env.QUASAR_SERVER
+export default route(function (/* { store, ssrContext } */) {
+  const createHistory = process.env.SERVER
     ? createMemoryHistory
-    : import.meta.env.QUASAR_VUE_ROUTER_MODE === 'history'
+    : process.env.VUE_ROUTER_MODE === 'history'
       ? createWebHistory
       : createWebHashHistory
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
+    history: createHistory(process.env.VUE_ROUTER_BASE),
+  })
 
-    // Leave this as is and make changes in quasar.conf.js instead!
-    // quasar.conf.js -> build -> vueRouterMode
-    // quasar.conf.js -> build -> publicPath
-    history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE),
+  Router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('xc_token')
+    const isAuthenticated = !!token
+
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      next('/login')
+    } else if (to.meta.guest && isAuthenticated) {
+      next('/')
+    } else {
+      next()
+    }
   })
 
   return Router

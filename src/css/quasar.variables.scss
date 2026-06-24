@@ -1,25 +1,20 @@
-// Quasar Sass (& SCSS) Variables
-// --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+// X-Chang Design System — Apple-inspired palette
+$primary:   #007AFF;
+$secondary: #5856D6;
+$accent:    #34C759;
 
-// Check documentation for full list of Quasar variables
+$dark:      #1D1D1F;
+$dark-page: #000000;
 
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
+$positive:  #34C759;
+$negative:  #FF3B30;
+$info:      #5AC8FA;
+$warning:   #FF9500;
 
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
-
-$primary: #1976d2;
-$secondary: #26a69a;
-$accent: #9c27b0;
-
-$dark: #1d1d1d;
-$dark-page: #121212;
-
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+// Extended palette used in components
+$surface:       #FFFFFF;
+$bg:            #F5F5F7;
+$text-primary:  #1D1D1F;
+$text-secondary:#6E6E73;
+$border:        #D2D2D7;
+$border-light:  #E8E8ED;

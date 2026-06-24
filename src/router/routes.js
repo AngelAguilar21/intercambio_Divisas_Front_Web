@@ -1,26 +1,30 @@
 const routes = [
   {
     path: '/',
-    component: () => import('@/layouts/MainLayout.vue'),
+    component: () => import('layouts/MainLayout.vue'),
+    meta: { requiresAuth: true },
     children: [
-      { path: '', component: () => import('@/pages/IndexPage.vue') },
-      { path: 'second', component: () => import('@/pages/SecondPage.vue') },
-      { path: 'test2', component: () => import('@/pages/TestPage.vue') },
+      { path: '',         component: () => import('pages/IndexPage.vue') },
+      { path: 'exchange', component: () => import('pages/ExchangePage.vue') },
+      { path: 'wallet',   component: () => import('pages/WalletPage.vue') },
+      { path: 'orders',   component: () => import('pages/OrdersPage.vue') },
+      { path: 'history',  component: () => import('pages/HistoryPage.vue') },
+      { path: 'profile',  component: () => import('pages/ProfilePage.vue') },
     ],
   },
   {
     path: '/login',
-    component: () => import('@/components/auth/LoginForm.vue'),
+    component: () => import('components/auth/LoginForm.vue'),
+    meta: { guest: true },
   },
   {
-    path: '/test',
-    component: () => import('@/pages/TestPage.vue'),
+    path: '/register',
+    component: () => import('components/auth/RegisterForm.vue'),
+    meta: { guest: true },
   },
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    component: () => import('@/pages/ErrorNotFound.vue'),
+    component: () => import('pages/ErrorNotFound.vue'),
   },
 ]
 

@@ -1,7 +1,10 @@
 <template>
-  <q-card flat bordered class="xc-chart-card">
-    <div class="row items-center justify-between q-mb-sm">
+  <q-card flat bordered class="xc-chart-card xc-card-accent-hover">
+    <div class="row items-center justify-between q-mb-md">
       <div class="row items-center q-gutter-sm">
+        <div class="xc-icon-badge">
+          <q-icon name="show_chart" size="18px" color="primary" />
+        </div>
         <div class="text-subtitle1 text-weight-bold">{{ titulo }}</div>
         <ParMonedaChip :origen="monedaOrigen" :destino="monedaDestino" />
       </div>
@@ -213,7 +216,7 @@ function onMouseLeave() {
 
 <style scoped>
 .xc-chart-card {
-  padding: 20px;
+  padding: 24px;
 }
 
 .xc-chart-svg {
@@ -267,8 +270,8 @@ function onMouseLeave() {
 }
 
 .xc-chart-stat-valor {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   margin-top: 4px;
   color: var(--xchang-page-text);
 }

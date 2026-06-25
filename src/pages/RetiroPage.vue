@@ -1,8 +1,15 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Retirar fondos</div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="north_east" size="14px" />
+        Retiro
+      </span>
+      <h1 class="xc-section-title">Retirar fondos</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+    </div>
 
-    <q-card flat bordered class="q-pa-md">
+    <q-card flat bordered class="q-pa-md xc-card-accent">
       <div class="row q-col-gutter-md">
         <div class="col-12 col-md-4">
           <q-select
@@ -92,9 +99,15 @@
             </q-item>
           </q-list>
 
-          <div v-if="resumen.comisionAplicada > 0" class="text-caption text-orange-9 q-mt-sm">
-            * Se aplica una comisión de {{ resumen.comisionAplicada }} {{ resumen.codigoISO }} por el método de cobro seleccionado.
-          </div>
+          <q-banner
+            v-if="resumen.comisionAplicada > 0"
+            dense
+            rounded
+            class="xchang-banner xchang-banner--warning q-mt-sm"
+          >
+            Se aplica una comisión de {{ resumen.comisionAplicada }} {{ resumen.codigoISO }} por el
+            método de cobro seleccionado.
+          </q-banner>
         </q-card-section>
 
         <q-card-section v-if="errorDialog" class="text-negative">

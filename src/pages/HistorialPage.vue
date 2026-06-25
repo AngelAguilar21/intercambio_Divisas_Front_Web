@@ -1,7 +1,14 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center justify-between q-mb-md">
-      <div class="text-h5">Historial de transacciones</div>
+    <div class="row items-end justify-between q-mb-md">
+      <div class="xc-page-head xc-page-head--inline">
+        <span class="xc-section-kicker">
+          <q-icon name="history" size="14px" />
+          Historial
+        </span>
+        <h1 class="xc-section-title">Historial de transacciones</h1>
+        <div class="xc-section-bar" aria-hidden="true" />
+      </div>
       <div class="q-gutter-sm">
         <q-btn flat dense color="primary" icon="table_view" label="Exportar Excel" :loading="exportando" @click="exportarExcel" />
         <q-btn flat dense color="primary" icon="picture_as_pdf" label="Exportar PDF" :loading="exportando" @click="exportarPdf" />
@@ -14,8 +21,8 @@
         :key="colCfg.key"
         class="historial-columna"
       >
-        <q-card flat bordered style="display: flex; flex-direction: column; height: 100%">
-          <div class="q-px-sm q-pt-sm q-pb-xs text-subtitle2 text-weight-bold bg-grey-2">
+        <q-card flat bordered class="xc-card-accent historial-card">
+          <div class="q-px-sm q-pt-sm q-pb-xs text-subtitle2 text-weight-bold historial-col-header">
             {{ colCfg.titulo }}
           </div>
 
@@ -51,7 +58,7 @@
             <div v-if="cols[colCfg.key].cargando" class="q-pa-md text-center">
               <q-spinner size="24px" color="primary" />
             </div>
-            <div v-else-if="cols[colCfg.key].filas.length === 0" class="q-pa-md text-center text-grey-6 text-caption">
+            <div v-else-if="cols[colCfg.key].filas.length === 0" class="q-pa-md text-center xc-text-secondary text-caption">
               No se encontraron operaciones
             </div>
             <table v-else class="historial-table">
@@ -129,7 +136,7 @@
                 <q-tooltip>Última página</q-tooltip>
               </q-btn>
             </q-btn-group>
-            <span class="text-caption text-grey-7 q-mx-xs">
+            <span class="text-caption xc-text-secondary q-mx-xs">
               {{ cols[colCfg.key].pagina }} / {{ cols[colCfg.key].totalPaginas || 1 }}
             </span>
             <q-space />
@@ -471,6 +478,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.xc-page-head--inline {
+  margin-bottom: 0;
+}
+
 .historial-wrapper {
   display: flex;
   gap: 12px;
@@ -487,6 +498,17 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+.historial-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.historial-col-header {
+  background: var(--xchang-blue-pale);
+  color: var(--xchang-blue-dark);
+}
+
 .tabla-scroll {
   overflow-y: auto;
   max-height: 460px;
@@ -497,7 +519,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--xchang-border);
   gap: 4px;
 }
 
@@ -510,15 +532,16 @@ onUnmounted(() => {
 .historial-table th,
 .historial-table td {
   padding: 4px 8px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--xchang-border);
   white-space: nowrap;
   text-align: left;
+  color: var(--xchang-page-text);
 }
 
 .historial-table thead th {
   position: sticky;
   top: 0;
-  background: #f5f5f5;
+  background: var(--xchang-surface);
   z-index: 1;
   font-weight: 600;
   font-size: 11px;
@@ -526,6 +549,6 @@ onUnmounted(() => {
 
 .ruta-header-row td,
 .ruta-sub-row td {
-  background: #e3f2fd;
+  background: var(--xchang-blue-pale);
 }
 </style>

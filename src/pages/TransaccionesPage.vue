@@ -1,8 +1,15 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Transacciones</div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="receipt_long" size="14px" />
+        Transacciones
+      </span>
+      <h1 class="xc-section-title">Órdenes y ofertas activas</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+    </div>
 
-    <q-card flat bordered class="q-pa-md q-mb-md">
+    <q-card flat bordered class="q-pa-md q-mb-md xc-card-accent">
       <div class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-3">
           <q-input v-model="filtros.desde" type="date" label="Fecha desde" outlined dense />
@@ -48,8 +55,11 @@
 
     <div class="row q-col-gutter-md">
       <div class="col-12 col-lg-6">
-        <q-card flat bordered>
-          <q-card-section>
+        <q-card flat bordered class="xc-card-accent">
+          <q-card-section class="row items-center q-gutter-sm">
+            <div class="xc-icon-badge">
+              <q-icon name="north_east" size="16px" color="primary" />
+            </div>
             <div class="text-subtitle1 text-weight-medium">Órdenes de compra activas</div>
           </q-card-section>
 
@@ -88,14 +98,14 @@
               </q-td>
             </template>
             <template #no-data>
-              <div class="full-width text-center text-grey-7 q-py-md">
+              <div class="full-width text-center xc-text-secondary q-py-md">
                 Sin órdenes de compra activas
               </div>
             </template>
           </q-table>
 
           <div v-if="totalOrdenes > 0" class="row items-center justify-end q-gutter-sm q-pa-sm">
-            <div class="text-caption text-grey-7">
+            <div class="text-caption xc-text-secondary">
               Página {{ paginacionOrdenes.page }} de {{ totalPaginasOrdenes }}
             </div>
             <q-btn
@@ -133,8 +143,11 @@
       </div>
 
       <div class="col-12 col-lg-6">
-        <q-card flat bordered>
-          <q-card-section>
+        <q-card flat bordered class="xc-card-accent">
+          <q-card-section class="row items-center q-gutter-sm">
+            <div class="xc-icon-badge">
+              <q-icon name="south_west" size="16px" color="primary" />
+            </div>
             <div class="text-subtitle1 text-weight-medium">Ofertas de venta activas</div>
           </q-card-section>
 
@@ -173,14 +186,14 @@
               </q-td>
             </template>
             <template #no-data>
-              <div class="full-width text-center text-grey-7 q-py-md">
+              <div class="full-width text-center xc-text-secondary q-py-md">
                 Sin ofertas de venta activas
               </div>
             </template>
           </q-table>
 
           <div v-if="totalOfertas > 0" class="row items-center justify-end q-gutter-sm q-pa-sm">
-            <div class="text-caption text-grey-7">
+            <div class="text-caption xc-text-secondary">
               Página {{ paginacionOfertas.page }} de {{ totalPaginasOfertas }}
             </div>
             <q-btn

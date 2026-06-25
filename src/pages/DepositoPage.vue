@@ -1,8 +1,15 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Depositar fondos</div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="south_west" size="14px" />
+        Depósito
+      </span>
+      <h1 class="xc-section-title">Depositar fondos</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+    </div>
 
-    <q-card flat bordered class="q-pa-md q-mb-md">
+    <q-card flat bordered class="q-pa-md q-mb-md xc-card-accent">
       <div class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-3">
           <q-select
@@ -46,7 +53,7 @@
       >
     </q-card>
 
-    <q-card v-if="resumen" flat bordered class="q-pa-md q-mb-md">
+    <q-card v-if="resumen" flat bordered class="q-pa-md q-mb-md xc-card-accent">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">Resumen</div>
       <q-list dense>
         <q-item>
@@ -85,12 +92,12 @@
           <q-item-section side>{{ resultado.nuevoSaldo }} {{ resultado.codigoISO }}</q-item-section>
         </q-item>
       </q-list>
-      <q-banner dense class="bg-blue-1 text-blue-9 q-mt-sm" rounded>
+      <q-banner dense class="xchang-banner xchang-banner--info q-mt-sm" rounded>
         Se enviará un correo de confirmación con el voucher a tu correo electrónico registrado.
       </q-banner>
 
       <div class="q-mt-md">
-        <div class="text-caption text-grey-8 q-mb-xs">
+        <div class="text-caption q-mb-xs" style="color: var(--xchang-text-secondary)">
           Comprobante de pago (JPG, PNG o PDF, máx. 5 MB)
         </div>
         <q-file

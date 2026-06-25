@@ -1,8 +1,13 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 text-weight-bold q-mb-xs">Mi billetera</div>
-    <div class="text-body2 q-mb-lg" style="color: var(--xchang-text-secondary)">
-      Saldo disponible por cada moneda de tu cuenta.
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="account_balance_wallet" size="14px" />
+        Billetera
+      </span>
+      <h1 class="xc-section-title">Mi billetera</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+      <p class="xc-page-head-desc">Saldo disponible por cada moneda de tu cuenta.</p>
     </div>
 
     <div v-if="cargando" class="row q-col-gutter-md">
@@ -20,7 +25,7 @@
         <q-card
           flat
           bordered
-          class="xc-wallet-card xc-enter"
+          class="xc-wallet-card xc-card-accent-hover xc-enter"
           :style="{ '--xc-delay': `${i * 70}ms` }"
         >
           <div class="row items-center justify-between">
@@ -80,12 +85,6 @@ onMounted(async () => {
 .xc-wallet-card {
   padding: 20px;
   min-height: 140px;
-  border-left: 4px solid var(--xchang-accent);
-  transition: border-color 0.2s ease;
-}
-
-.xc-wallet-card:hover {
-  border-left-color: var(--q-primary);
 }
 
 .xc-wallet-bandera {

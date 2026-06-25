@@ -47,6 +47,9 @@
           <q-item-section side>{{ resultado.nuevoSaldo }} {{ resultado.codigoISO }}</q-item-section>
         </q-item>
       </q-list>
+      <q-banner dense class="bg-blue-1 text-blue-9 q-mt-sm" rounded>
+        Se enviará un correo de confirmación con el voucher a tu correo electrónico registrado.
+      </q-banner>
 
       <div class="q-mt-md">
         <div class="text-caption text-grey-8 q-mb-xs">Comprobante de pago (JPG, PNG o PDF, máx. 5 MB)</div>

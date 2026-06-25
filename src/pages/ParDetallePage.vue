@@ -2,7 +2,10 @@
   <q-page class="q-pa-md">
     <div class="row items-center justify-between q-mb-md">
       <div>
-        <div class="text-h5">Detalle del par {{ parTexto }}</div>
+        <div class="row items-center q-gutter-sm">
+          <div class="text-h5">Detalle del par</div>
+          <ParMonedaChip :origen="monedaOrigen" :destino="monedaDestino" />
+        </div>
         <div class="text-body2 text-grey-7">
           Vista base para gráfico, libro de órdenes y operaciones del par seleccionado.
         </div>
@@ -578,7 +581,14 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Notify } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
-import { getLibroOrdenes, crearOrden, crearOferta, getResumenOferta, getResumenOrden } from '@/services/mercado'
+import {
+  getLibroOrdenes,
+  crearOrden,
+  crearOferta,
+  getResumenOferta,
+  getResumenOrden,
+} from '@/services/mercado'
+import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
 import {
   getResumen as getResumenCompra,
   confirmar as confirmarCompra,
@@ -599,7 +609,6 @@ const authStore = useAuthStore()
 const parMonedaId = computed(() => Number(route.params.parMonedaId))
 const monedaOrigen = computed(() => String(route.query.origen || '').toUpperCase())
 const monedaDestino = computed(() => String(route.query.destino || '').toUpperCase())
-const parTexto = computed(() => `${monedaOrigen.value}/${monedaDestino.value}`)
 
 const rango = ref('UltimoDia')
 
@@ -676,6 +685,7 @@ const columnasOrdenes = computed(() => [
     field: (row) => formatearDecimal(row.cantidad ?? row.cantidadAObtener),
     align: 'right',
     sortable: false,
+    classes: 'xc-figure',
   },
   {
     name: 'precioUnitario',
@@ -683,6 +693,7 @@ const columnasOrdenes = computed(() => [
     field: (row) => formatearDecimal(row.precioUnitario),
     align: 'right',
     sortable: false,
+    classes: 'xc-figure',
   },
   {
     name: 'fecha',
@@ -700,6 +711,7 @@ const columnasOfertas = computed(() => [
     field: (row) => formatearDecimal(row.cantidad ?? row.cantidadAVender),
     align: 'right',
     sortable: false,
+    classes: 'xc-figure',
   },
   {
     name: 'precioUnitario',
@@ -707,6 +719,7 @@ const columnasOfertas = computed(() => [
     field: (row) => formatearDecimal(row.precioUnitario),
     align: 'right',
     sortable: false,
+    classes: 'xc-figure',
   },
   {
     name: 'fecha',
@@ -1288,13 +1301,13 @@ function formatearDecimal(valor) {
 <style scoped>
 .placeholder-chart {
   min-height: 220px;
-  border: 1px dashed #9e9e9e;
-  border-radius: 8px;
+  border: 1px dashed var(--xchang-border);
+  border-radius: var(--xchang-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #757575;
-  background: rgba(0, 0, 0, 0.03);
+  color: var(--xchang-text-secondary);
+  background: var(--xchang-page-bg);
 }
 
 .resultado-pre {

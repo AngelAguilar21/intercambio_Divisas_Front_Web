@@ -1,27 +1,153 @@
 /* app global css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --xchang-buy-color: #1565c0;
-  --xchang-sell-color: #2e7d32;
-  --xchang-page-bg: #ffffff;
-  --xchang-page-text: #111827;
+  /* Marca: azul fintech (paleta fija del producto) */
+  --q-primary: #2563eb;
+  --q-secondary: #1e40af;
+  --q-accent: #3b82f6;
+  --q-positive: #16a34a;
+  --q-negative: #dc2626;
+  --q-info: #3b82f6;
+  --q-warning: #d97706;
+
+  --xchang-blue-dark: #1e40af;
+  --xchang-blue: #2563eb;
+  --xchang-blue-medium: #3b82f6;
+  --xchang-blue-light: #60a5fa;
+  --xchang-blue-pale: #dbeafe;
+
+  /* Bloque de acento: azul de marca solido + texto blanco (contraste verificado) */
+  --xchang-accent: #2563eb;
+  --xchang-accent-ink: #ffffff;
+
+  --xchang-buy-color: #2563eb;
+  --xchang-sell-color: #16a34a;
+
+  --xchang-page-bg: #f8fafc;
+  --xchang-page-text: #0f172a;
+  --xchang-surface: #ffffff;
+  --xchang-text-secondary: #64748b;
+  --xchang-border: #e2e8f0;
+  --xchang-border-light: #e2e8f0;
+
+  /* Bordes suaves y sombras sutiles, estilo fintech premium */
+  --xchang-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --xchang-shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+  --xchang-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --xchang-radius-sm: 12px;
+  --xchang-radius-md: 16px;
+  --xchang-radius-lg: 20px;
 }
 
 :root[data-theme='oscuro'] {
-  --xchang-buy-color: #64b5f6;
-  --xchang-sell-color: #81c784;
-  --xchang-page-bg: #1f2933;
-  --xchang-page-text: #f5f5f5;
+  --xchang-buy-color: #60a5fa;
+  --xchang-sell-color: #4ade80;
+
+  --xchang-page-bg: #0b1220;
+  --xchang-page-text: #f1f5f9;
+  --xchang-surface: #131c2e;
+  --xchang-text-secondary: #94a3b8;
+  --xchang-border: #233047;
+  --xchang-border-light: #1c283d;
+
+  --xchang-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --xchang-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --xchang-shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   background: var(--xchang-page-bg);
   color: var(--xchang-page-text);
 }
 
+/* Numerales tabulares para montos y precios: alineación financiera precisa */
+.xc-figure {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.01em;
+}
+
+/* Bloque de acento solido, azul de marca + texto blanco */
+.xc-block-accent {
+  background: linear-gradient(135deg, var(--xchang-blue) 0%, var(--xchang-blue-dark) 100%);
+  color: var(--xchang-accent-ink);
+  border-radius: var(--xchang-radius-lg);
+}
+
+/* Entrada escalonada: cada tarjeta aparece en secuencia, no toda a la vez */
+@keyframes xc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.xc-enter {
+  animation: xc-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--xc-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xc-enter {
+    animation: none;
+  }
+}
+
 .xchang-dark {
-  background: #1f2933;
-  color: #f5f5f5;
+  background: var(--xchang-page-bg);
+  color: var(--xchang-page-text);
+}
+
+.q-page {
+  background: var(--xchang-page-bg);
+}
+
+/* Tarjetas con borde suave, esquinas amplias, sombra sutil */
+.q-card {
+  border-radius: var(--xchang-radius-lg);
+  box-shadow: var(--xchang-shadow-sm) !important;
+}
+
+.q-card--bordered {
+  border-color: var(--xchang-border-light);
+}
+
+.q-dialog .q-card {
+  border-radius: var(--xchang-radius-lg);
+  box-shadow: var(--xchang-shadow-lg) !important;
+}
+
+/* Botones modernos: texto en oración normal (no mayúsculas), bien redondeados */
+.q-btn {
+  border-radius: 100px;
+  text-transform: none;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.q-btn.bg-primary {
+  background: var(--xchang-blue) !important;
+  color: #ffffff !important;
+}
+
+.q-field--outlined .q-field__control {
+  border-radius: var(--xchang-radius-sm);
 }
 
 .xchang-buy-line {
@@ -37,49 +163,114 @@ body {
 /* Mensajes/banners compatibles con tema claro y oscuro */
 
 .xchang-banner {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #f5f5f5;
-  color: #1f2933;
+  border: 1px solid var(--xchang-border-light);
+  background: var(--xchang-surface);
+  color: var(--xchang-page-text);
+  border-radius: var(--xchang-radius-md);
 }
 
 .xchang-banner--info {
-  background: #e3f2fd;
-  color: #0d47a1;
-  border-color: #90caf9;
+  background: var(--xchang-blue-pale);
+  color: #1e40af;
+  border-color: rgba(37, 99, 235, 0.22);
 }
 
 .xchang-banner--empty {
-  background: #f5f5f5;
-  color: #1f2933;
-  border-color: #d0d0d0;
+  background: var(--xchang-page-bg);
+  color: var(--xchang-text-secondary);
+  border-color: var(--xchang-border-light);
 }
 
 .xchang-banner--error {
-  background: #ffebee;
-  color: #b71c1c;
-  border-color: #ef9a9a;
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.24);
 }
 
-.xchang-dark .xchang-banner {
-  background: #263238;
-  color: #f5f5f5;
-  border-color: #455a64;
+.xchang-banner--success {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+  border-color: rgba(22, 163, 74, 0.26);
 }
 
-.xchang-dark .xchang-banner--info {
-  background: #102a43;
-  color: #bbdefb;
-  border-color: #2f5f8f;
-}
-
-.xchang-dark .xchang-banner--empty {
-  background: #242424;
-  color: #e0e0e0;
-  border-color: #555;
+.xchang-banner--warning {
+  background: rgba(217, 119, 6, 0.1);
+  color: #92400e;
+  border-color: rgba(217, 119, 6, 0.28);
 }
 
 .xchang-dark .xchang-banner--error {
-  background: #3b1518;
-  color: #ffcdd2;
-  border-color: #8b2f36;
+  color: #fca5a5;
+}
+
+.xchang-dark .xchang-banner--success {
+  color: #86efac;
+}
+
+.xchang-dark .xchang-banner--warning {
+  color: #fcd34d;
+}
+
+.xchang-dark .xchang-banner--info {
+  color: #93c5fd;
+}
+
+/* Andamiaje compartido de secciones del landing: estas clases se usan en varios
+   componentes (Beneficios, Cómo funciona, Testimonios, FAQ). Van aquí (global) y no
+   en cada <style scoped> porque "scoped" no comparte reglas entre componentes. */
+.xc-section {
+  padding: 80px 24px;
+}
+
+.xc-section--alt {
+  background: var(--xchang-surface);
+  border-top: 1px solid var(--xchang-border);
+  border-bottom: 1px solid var(--xchang-border);
+}
+
+.xc-section-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.xc-section-head {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 48px;
+}
+
+.xc-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--xchang-blue-dark);
+  background: var(--xchang-blue-pale);
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 16px;
+}
+
+.xc-section-title {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--xchang-page-text);
+  margin: 0 0 16px;
+}
+
+.xc-section-bar {
+  width: 56px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--xchang-blue) 0%, var(--xchang-blue-light) 100%);
+}
+
+@media (max-width: 599px) {
+  .xc-section {
+    padding: 52px 16px;
+  }
 }

@@ -15,15 +15,23 @@
         :rules="[(val) => /.+@.+\..+/.test(val) || 'Correo inválido']"
       />
 
-      <q-banner v-if="mensaje" dense class="bg-green-1 text-green-9" rounded>
+      <q-banner v-if="mensaje" dense class="xchang-banner xchang-banner--success" rounded>
         {{ mensaje }}
       </q-banner>
 
-      <q-btn type="submit" color="primary" label="Enviar enlace" class="full-width" :loading="loading" />
+      <q-btn
+        type="submit"
+        color="primary"
+        label="Enviar enlace"
+        class="full-width"
+        :loading="loading"
+      />
     </q-form>
 
     <div class="text-center q-mt-md">
-      <router-link :to="{ name: 'login' }" class="text-primary">Volver a iniciar sesión</router-link>
+      <router-link :to="{ name: 'login' }" class="text-primary"
+        >Volver a iniciar sesión</router-link
+      >
     </div>
   </div>
 </template>

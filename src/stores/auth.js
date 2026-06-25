@@ -77,6 +77,7 @@ export const useAuthStore = defineStore('auth', {
 
     async register(payload) {
       const { data } = await authService.register(payload)
+      if (data.token) this.setSession(data)
       return data
     },
 

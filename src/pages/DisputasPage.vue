@@ -5,17 +5,30 @@
     <q-card flat bordered class="q-pa-md q-mb-md">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">Operaciones recientes</div>
       <div class="text-caption text-grey-7 q-mb-sm">
-        Si tienes un problema con la contraparte de una de tus operaciones, puedes abrir una disputa.
+        Si tienes un problema con la contraparte de una de tus operaciones, puedes abrir una
+        disputa.
       </div>
 
       <q-list v-if="operaciones.length" bordered separator>
         <q-item v-for="op in operaciones" :key="`${op.operacionTipo}-${op.operacionReferenciaId}`">
           <q-item-section>
-            <q-item-label>{{ op.contraparteNombre }} ({{ op.miRol === 'Comprador' ? 'vendedor' : 'comprador' }})</q-item-label>
-            <q-item-label caption>{{ op.par }} · {{ new Date(op.fecha).toLocaleString() }}</q-item-label>
+            <q-item-label
+              >{{ op.contraparteNombre }} ({{
+                op.miRol === 'Comprador' ? 'vendedor' : 'comprador'
+              }})</q-item-label
+            >
+            <q-item-label caption
+              >{{ op.par }} · {{ new Date(op.fecha).toLocaleString() }}</q-item-label
+            >
           </q-item-section>
           <q-item-section side>
-            <q-btn flat color="negative" label="Abrir disputa" size="sm" @click="abrirDialogo(op)" />
+            <q-btn
+              flat
+              color="negative"
+              label="Abrir disputa"
+              size="sm"
+              @click="abrirDialogo(op)"
+            />
           </q-item-section>
         </q-item>
       </q-list>
@@ -30,14 +43,17 @@
           <q-item-section>
             <q-item-label>{{ d.motivo }}</q-item-label>
             <q-item-label caption>
-              Contraparte: {{ d.contraparteNombre }} · Admin: {{ d.administradorNombre || 'sin asignar' }}
+              Contraparte: {{ d.contraparteNombre }} · Admin:
+              {{ d.administradorNombre || 'sin asignar' }}
             </q-item-label>
             <q-item-label v-if="d.resolucion" caption class="text-positive">
               Resolución ({{ d.criterioResolucion }}): {{ d.resolucion }}
             </q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-badge :color="d.estado === 'Resuelta' ? 'positive' : 'orange'">{{ d.estado }}</q-badge>
+            <q-badge :color="d.estado === 'Resuelta' ? 'positive' : 'orange'">{{
+              d.estado
+            }}</q-badge>
           </q-item-section>
         </q-item>
       </q-list>
@@ -46,11 +62,24 @@
 
     <q-dialog v-model="dialogoAbierto">
       <q-card style="min-width: 400px">
-        <q-card-section class="text-h6">Abrir disputa contra {{ seleccionado?.contraparteNombre }}</q-card-section>
+        <q-card-section class="text-h6"
+          >Abrir disputa contra {{ seleccionado?.contraparteNombre }}</q-card-section
+        >
         <q-card-section>
           <q-input v-model="form.motivo" type="textarea" label="Motivo" outlined />
-          <q-input v-model="form.evidenciaUrl" label="URL de evidencia (opcional)" outlined class="q-mt-md" />
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-sm" rounded>{{ errorMessage }}</q-banner>
+          <q-input
+            v-model="form.evidenciaUrl"
+            label="URL de evidencia (opcional)"
+            outlined
+            class="q-mt-md"
+          />
+          <q-banner
+            v-if="errorMessage"
+            dense
+            class="xchang-banner xchang-banner--error q-mt-sm"
+            rounded
+            >{{ errorMessage }}</q-banner
+          >
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup flat label="Cancelar" />

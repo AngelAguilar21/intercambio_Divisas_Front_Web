@@ -17,10 +17,22 @@
           <q-input v-model="filtro.estado" label="Estado" outlined dense />
         </div>
         <div class="col-6 col-md-2">
-          <q-input v-model.number="filtro.usuarioId" type="number" label="ID usuario" outlined dense />
+          <q-input
+            v-model.number="filtro.usuarioId"
+            type="number"
+            label="ID usuario"
+            outlined
+            dense
+          />
         </div>
         <div class="col-6 col-md-2">
-          <q-btn color="primary" label="Buscar" class="full-width" :loading="cargando" @click="cargar" />
+          <q-btn
+            color="primary"
+            label="Buscar"
+            class="full-width"
+            :loading="cargando"
+            @click="cargar"
+          />
         </div>
       </div>
     </q-card>
@@ -31,13 +43,17 @@
           <div class="text-subtitle2 q-mb-sm">Subtotales por moneda/par</div>
           <q-markup-table dense flat>
             <thead>
-              <tr><th class="text-left">Moneda</th><th class="text-right">Cantidad</th><th class="text-right">Monto</th></tr>
+              <tr>
+                <th class="text-left">Moneda</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Monto</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="s in reporte?.subtotalesPorMoneda" :key="s.clave">
                 <td class="text-left">{{ s.clave }}</td>
-                <td class="text-right">{{ s.cantidad }}</td>
-                <td class="text-right">{{ s.monto.toFixed(2) }}</td>
+                <td class="text-right xc-figure">{{ s.cantidad }}</td>
+                <td class="text-right xc-figure">{{ s.monto.toFixed(2) }}</td>
               </tr>
             </tbody>
           </q-markup-table>
@@ -48,13 +64,17 @@
           <div class="text-subtitle2 q-mb-sm">Subtotales por estado</div>
           <q-markup-table dense flat>
             <thead>
-              <tr><th class="text-left">Estado</th><th class="text-right">Cantidad</th><th class="text-right">Monto</th></tr>
+              <tr>
+                <th class="text-left">Estado</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Monto</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="s in reporte?.subtotalesPorEstado" :key="s.clave">
                 <td class="text-left">{{ s.clave }}</td>
-                <td class="text-right">{{ s.cantidad }}</td>
-                <td class="text-right">{{ s.monto.toFixed(2) }}</td>
+                <td class="text-right xc-figure">{{ s.cantidad }}</td>
+                <td class="text-right xc-figure">{{ s.monto.toFixed(2) }}</td>
               </tr>
             </tbody>
           </q-markup-table>
@@ -65,10 +85,23 @@
     <q-card flat bordered class="q-pa-md">
       <div class="row q-mb-sm">
         <q-space />
-        <q-btn flat dense icon="download" label="Exportar CSV" class="q-mr-sm" @click="exportarCsv" />
+        <q-btn
+          flat
+          dense
+          icon="download"
+          label="Exportar CSV"
+          class="q-mr-sm"
+          @click="exportarCsv"
+        />
         <q-btn flat dense icon="print" label="Exportar PDF" @click="exportarPdf" />
       </div>
-      <q-table :rows="reporte?.items || []" :columns="columnas" row-key="referenciaId" :loading="cargando" flat />
+      <q-table
+        :rows="reporte?.items || []"
+        :columns="columnas"
+        row-key="referenciaId"
+        :loading="cargando"
+        flat
+      />
     </q-card>
   </q-page>
 </template>
@@ -83,10 +116,15 @@ const cargando = ref(false)
 
 const columnas = [
   { name: 'tipoOperacion', label: 'Tipo', field: 'tipoOperacion', align: 'left' },
-  { name: 'fecha', label: 'Fecha', field: (r) => new Date(r.fecha).toLocaleString(), align: 'left' },
+  {
+    name: 'fecha',
+    label: 'Fecha',
+    field: (r) => new Date(r.fecha).toLocaleString(),
+    align: 'left',
+  },
   { name: 'usuarioNombre', label: 'Usuario', field: 'usuarioNombre', align: 'left' },
   { name: 'moneda', label: 'Moneda/Par', field: 'moneda', align: 'left' },
-  { name: 'monto', label: 'Monto', field: 'monto', align: 'right' },
+  { name: 'monto', label: 'Monto', field: 'monto', align: 'right', classes: 'xc-figure' },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
 ]
 
@@ -112,7 +150,12 @@ function exportarCsv() {
 
   const encabezado = columnas.map((c) => c.label).join(',')
   const filas = items.map((row) =>
-    columnas.map((c) => `"${String(typeof c.field === 'function' ? c.field(row) : row[c.field]).replace(/"/g, '""')}"`).join(','),
+    columnas
+      .map(
+        (c) =>
+          `"${String(typeof c.field === 'function' ? c.field(row) : row[c.field]).replace(/"/g, '""')}"`,
+      )
+      .join(','),
   )
   const csv = [encabezado, ...filas].join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })

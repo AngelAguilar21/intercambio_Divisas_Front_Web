@@ -5,7 +5,12 @@
     <q-card flat bordered class="q-pa-md q-mb-md">
       <div class="text-subtitle1 text-weight-medium q-mb-md">Publicar nueva oferta</div>
 
-      <q-banner v-if="ofertasActivas.length >= 5" dense class="bg-orange-1 text-orange-9 q-mb-md" rounded>
+      <q-banner
+        v-if="ofertasActivas.length >= 5"
+        dense
+        class="xchang-banner xchang-banner--warning q-mb-md"
+        rounded
+      >
         Ya tienes 5 ofertas activas, el máximo permitido. Cancela alguna para publicar una nueva.
       </q-banner>
 
@@ -64,14 +69,27 @@
         </div>
 
         <div class="col-12">
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9" rounded>{{ errorMessage }}</q-banner>
-          <q-banner v-if="successMessage" dense class="bg-green-1 text-green-9 q-mt-sm" rounded>
+          <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>{{
+            errorMessage
+          }}</q-banner>
+          <q-banner
+            v-if="successMessage"
+            dense
+            class="xchang-banner xchang-banner--success q-mt-sm"
+            rounded
+          >
             {{ successMessage }}
           </q-banner>
         </div>
 
         <div class="col-12">
-          <q-btn type="submit" color="primary" label="Publicar oferta" :loading="creando" :disable="ofertasActivas.length >= 5" />
+          <q-btn
+            type="submit"
+            color="primary"
+            label="Publicar oferta"
+            :loading="creando"
+            :disable="ofertasActivas.length >= 5"
+          />
         </div>
       </q-form>
     </q-card>
@@ -89,13 +107,17 @@
         />
       </div>
 
-      <q-table
-        :rows="ofertas"
-        :columns="columnas"
-        row-key="ofertaVentaId"
-        :loading="cargando"
-        flat
-      >
+      <q-table :rows="ofertas" :columns="columnas" row-key="ofertaVentaId" :loading="cargando" flat>
+        <template #body-cell-par="props">
+          <q-td :props="props">
+            <ParMonedaChip :origen="props.row.monedaOrigen" :destino="props.row.monedaDestino" />
+          </q-td>
+        </template>
+        <template #body-cell-estado="props">
+          <q-td :props="props">
+            <EstadoBadge :estado="props.row.estado" />
+          </q-td>
+        </template>
         <template #body-cell-acciones="props">
           <q-td :props="props">
             <q-btn
@@ -128,6 +150,8 @@ import { getMonedas } from '@/services/monedas'
 import { resolveParMonedaId } from '@/services/preciosPares'
 import { getOfertas, crearOferta } from '@/services/ofertas'
 import CancelarDialog from '@/components/mercado/CancelarDialog.vue'
+import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
+import EstadoBadge from '@/components/common/EstadoBadge.vue'
 
 const monedaOptions = ref([])
 const vigenciaOptions = [
@@ -137,7 +161,13 @@ const vigenciaOptions = [
   { label: '24 horas', value: 24 },
 ]
 
-const form = reactive({ monedaOrigenId: null, monedaDestinoId: null, cantidad: null, precioUnitario: null, vigenciaHoras: 24 })
+const form = reactive({
+  monedaOrigenId: null,
+  monedaDestinoId: null,
+  cantidad: null,
+  precioUnitario: null,
+  vigenciaHoras: 24,
+})
 const creando = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -151,10 +181,33 @@ const ofertasActivas = computed(() =>
 )
 
 const columnas = [
-  { name: 'par', label: 'Par', field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`, align: 'left' },
-  { name: 'cantidadOriginal', label: 'Cantidad', field: 'cantidadOriginal', align: 'right' },
-  { name: 'cantidadPendiente', label: 'Pendiente', field: 'cantidadPendiente', align: 'right' },
-  { name: 'precioUnitario', label: 'Precio', field: 'precioUnitario', align: 'right' },
+  {
+    name: 'par',
+    label: 'Par',
+    field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`,
+    align: 'left',
+  },
+  {
+    name: 'cantidadOriginal',
+    label: 'Cantidad',
+    field: 'cantidadOriginal',
+    align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'cantidadPendiente',
+    label: 'Pendiente',
+    field: 'cantidadPendiente',
+    align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'precioUnitario',
+    label: 'Precio',
+    field: 'precioUnitario',
+    align: 'right',
+    classes: 'xc-figure',
+  },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
   {
     name: 'fechaExpiracion',
@@ -170,7 +223,11 @@ const dialogAbierto = ref(false)
 
 onMounted(async () => {
   const { data } = await getMonedas()
-  monedaOptions.value = data.map((m) => ({ label: `${m.codigoISO} - ${m.nombre}`, value: m.monedaId, iso: m.codigoISO }))
+  monedaOptions.value = data.map((m) => ({
+    label: `${m.codigoISO} - ${m.nombre}`,
+    value: m.monedaId,
+    iso: m.codigoISO,
+  }))
   await cargarOfertas()
 })
 
@@ -215,7 +272,10 @@ async function onCrear() {
     form.precioUnitario = null
     await cargarOfertas()
   } catch (error) {
-    errorMessage.value = error.response?.data?.error || error.response?.data?.mensaje || 'No se pudo publicar la oferta.'
+    errorMessage.value =
+      error.response?.data?.error ||
+      error.response?.data?.mensaje ||
+      'No se pudo publicar la oferta.'
   } finally {
     creando.value = false
   }
@@ -227,7 +287,10 @@ function abrirCancelacion(row) {
 }
 
 function onCancelado(resultado) {
-  Notify.create({ type: 'positive', message: `Oferta cancelada. Reembolso: ${resultado.montoReembolsado} ${resultado.monedaReembolso}` })
+  Notify.create({
+    type: 'positive',
+    message: `Oferta cancelada. Reembolso: ${resultado.montoReembolsado} ${resultado.monedaReembolso}`,
+  })
   cargarOfertas()
 }
 </script>

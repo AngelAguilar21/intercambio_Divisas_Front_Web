@@ -25,13 +25,30 @@
           />
         </div>
         <div class="col-12 col-md-3">
-          <q-input v-model.number="form.cantidad" type="number" label="Cantidad a obtener" outlined />
+          <q-input
+            v-model.number="form.cantidad"
+            type="number"
+            label="Cantidad a obtener"
+            outlined
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-btn color="primary" label="Ver resumen" class="full-width" :loading="cargandoResumen" @click="onVerResumen" />
+          <q-btn
+            color="primary"
+            label="Ver resumen"
+            class="full-width"
+            :loading="cargandoResumen"
+            @click="onVerResumen"
+          />
         </div>
       </div>
-      <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-md" rounded>{{ errorMessage }}</q-banner>
+      <q-banner
+        v-if="errorMessage"
+        dense
+        class="xchang-banner xchang-banner--error q-mt-md"
+        rounded
+        >{{ errorMessage }}</q-banner
+      >
     </q-card>
 
     <q-card v-if="resumen" flat bordered class="q-pa-md q-mb-md">
@@ -39,7 +56,9 @@
       <q-list dense>
         <q-item>
           <q-item-section>Cantidad ejecutable</q-item-section>
-          <q-item-section side>{{ resumen.cantidadEjecutable }} {{ resumen.monedaDestino }}</q-item-section>
+          <q-item-section side
+            >{{ resumen.cantidadEjecutable }} {{ resumen.monedaDestino }}</q-item-section
+          >
         </q-item>
         <q-item>
           <q-item-section>Precio promedio</q-item-section>
@@ -47,14 +66,27 @@
         </q-item>
         <q-item>
           <q-item-section>Total estimado a pagar</q-item-section>
-          <q-item-section side>{{ resumen.totalEstimado }} {{ resumen.monedaOrigen }}</q-item-section>
+          <q-item-section side
+            >{{ resumen.totalEstimado }} {{ resumen.monedaOrigen }}</q-item-section
+          >
         </q-item>
       </q-list>
 
-      <q-banner v-if="!resumen.liquidezSuficiente" dense class="bg-orange-1 text-orange-9 q-mt-sm" rounded>
-        Liquidez insuficiente para la cantidad solicitada. Puedes confirmar solo la cantidad disponible.
+      <q-banner
+        v-if="!resumen.liquidezSuficiente"
+        dense
+        class="xchang-banner xchang-banner--warning q-mt-sm"
+        rounded
+      >
+        Liquidez insuficiente para la cantidad solicitada. Puedes confirmar solo la cantidad
+        disponible.
       </q-banner>
-      <q-banner v-if="!resumen.saldoSuficiente" dense class="bg-red-1 text-red-9 q-mt-sm" rounded>
+      <q-banner
+        v-if="!resumen.saldoSuficiente"
+        dense
+        class="xchang-banner xchang-banner--error q-mt-sm"
+        rounded
+      >
         Saldo insuficiente en {{ resumen.monedaOrigen }}.
       </q-banner>
 
@@ -74,14 +106,24 @@
           style="width: 160px"
           label="Máx. saltos"
         />
-        <q-btn color="secondary" label="Buscar mejor ruta" :loading="buscandoRuta" @click="onBuscarRuta" />
+        <q-btn
+          color="secondary"
+          label="Buscar mejor ruta"
+          :loading="buscandoRuta"
+          @click="onBuscarRuta"
+        />
       </div>
     </q-card>
 
     <q-card v-if="ruta" flat bordered class="q-pa-md q-mb-md">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">Resultado de búsqueda de ruta</div>
 
-      <q-banner v-if="!ruta.rutaEncontrada" dense class="bg-orange-1 text-orange-9" rounded>
+      <q-banner
+        v-if="!ruta.rutaEncontrada"
+        dense
+        class="xchang-banner xchang-banner--warning"
+        rounded
+      >
         {{ ruta.mensaje || 'No se encontró una ruta mejor que la compra normal.' }}
       </q-banner>
 
@@ -114,20 +156,30 @@
           </q-item>
         </q-list>
 
-        <q-btn color="primary" class="q-mt-md" label="Confirmar con esta ruta" :loading="confirmando" @click="onConfirmarRuta" />
+        <q-btn
+          color="primary"
+          class="q-mt-md"
+          label="Confirmar con esta ruta"
+          :loading="confirmando"
+          @click="onConfirmarRuta"
+        />
       </template>
     </q-card>
 
-    <q-card v-if="resultado" flat bordered class="q-pa-md bg-green-1">
+    <q-card v-if="resultado" flat bordered class="q-pa-md xchang-banner--success">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">Operación completada</div>
       <q-list dense>
         <q-item>
           <q-item-section>Cantidad ejecutada</q-item-section>
-          <q-item-section side>{{ resultado.cantidadEjecutada }} {{ resultado.monedaDestino }}</q-item-section>
+          <q-item-section side
+            >{{ resultado.cantidadEjecutada }} {{ resultado.monedaDestino }}</q-item-section
+          >
         </q-item>
         <q-item>
           <q-item-section>Total pagado</q-item-section>
-          <q-item-section side>{{ resultado.totalPagado }} {{ resultado.monedaOrigen }}</q-item-section>
+          <q-item-section side
+            >{{ resultado.totalPagado }} {{ resultado.monedaOrigen }}</q-item-section
+          >
         </q-item>
         <q-item>
           <q-item-section>Estado</q-item-section>
@@ -161,7 +213,11 @@ const resultado = ref(null)
 
 onMounted(async () => {
   const { data } = await getMonedas()
-  monedaOptions.value = data.map((m) => ({ label: `${m.codigoISO} - ${m.nombre}`, value: m.monedaId, iso: m.codigoISO }))
+  monedaOptions.value = data.map((m) => ({
+    label: `${m.codigoISO} - ${m.nombre}`,
+    value: m.monedaId,
+    iso: m.codigoISO,
+  }))
 })
 
 async function onVerResumen() {
@@ -184,7 +240,10 @@ async function onVerResumen() {
       errorMessage.value = 'No existe un par de monedas para esa combinación.'
       return
     }
-    const { data } = await getResumen({ parMonedaId: parMonedaId.value, cantidadAObtener: form.cantidad })
+    const { data } = await getResumen({
+      parMonedaId: parMonedaId.value,
+      cantidadAObtener: form.cantidad,
+    })
     resumen.value = data
   } catch (error) {
     errorMessage.value = error.response?.data?.mensaje || 'No se pudo obtener el resumen.'

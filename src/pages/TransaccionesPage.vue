@@ -54,13 +54,27 @@
           </q-card-section>
 
           <q-table
-            :rows="ordenes"
+            :rows="ordenesOrdenadas"
             :columns="columnasOrdenes"
             row-key="ordenCompraId"
-            :loading="cargando"
+            :loading="cargandoOrdenes"
             flat
-            :pagination="{ rowsPerPage: filtros.tamanoPagina }"
+            hide-pagination
+            :rows-per-page-options="[0]"
           >
+            <template #body-cell-par="props">
+              <q-td :props="props">
+                <ParMonedaChip
+                  :origen="props.row.monedaOrigen"
+                  :destino="props.row.monedaDestino"
+                />
+              </q-td>
+            </template>
+            <template #body-cell-estado="props">
+              <q-td :props="props">
+                <EstadoBadge :estado="props.row.estado" />
+              </q-td>
+            </template>
             <template #body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn
@@ -73,7 +87,48 @@
                 />
               </q-td>
             </template>
+            <template #no-data>
+              <div class="full-width text-center text-grey-7 q-py-md">
+                Sin órdenes de compra activas
+              </div>
+            </template>
           </q-table>
+
+          <div v-if="totalOrdenes > 0" class="row items-center justify-end q-gutter-sm q-pa-sm">
+            <div class="text-caption text-grey-7">
+              Página {{ paginacionOrdenes.page }} de {{ totalPaginasOrdenes }}
+            </div>
+            <q-btn
+              flat
+              dense
+              round
+              icon="first_page"
+              :disable="paginacionOrdenes.page === 1"
+              @click="irAPaginaOrdenes(1)"
+            />
+            <q-btn
+              flat
+              dense
+              label="Anterior"
+              :disable="paginacionOrdenes.page === 1"
+              @click="irAPaginaOrdenes(paginacionOrdenes.page - 1)"
+            />
+            <q-btn
+              flat
+              dense
+              label="Siguiente"
+              :disable="paginacionOrdenes.page >= totalPaginasOrdenes"
+              @click="irAPaginaOrdenes(paginacionOrdenes.page + 1)"
+            />
+            <q-btn
+              flat
+              dense
+              round
+              icon="last_page"
+              :disable="paginacionOrdenes.page >= totalPaginasOrdenes"
+              @click="irAPaginaOrdenes(totalPaginasOrdenes)"
+            />
+          </div>
         </q-card>
       </div>
 
@@ -84,13 +139,27 @@
           </q-card-section>
 
           <q-table
-            :rows="ofertas"
+            :rows="ofertasOrdenadas"
             :columns="columnasOfertas"
             row-key="ofertaVentaId"
-            :loading="cargando"
+            :loading="cargandoOfertas"
             flat
-            :pagination="{ rowsPerPage: filtros.tamanoPagina }"
+            hide-pagination
+            :rows-per-page-options="[0]"
           >
+            <template #body-cell-par="props">
+              <q-td :props="props">
+                <ParMonedaChip
+                  :origen="props.row.monedaOrigen"
+                  :destino="props.row.monedaDestino"
+                />
+              </q-td>
+            </template>
+            <template #body-cell-estado="props">
+              <q-td :props="props">
+                <EstadoBadge :estado="props.row.estado" />
+              </q-td>
+            </template>
             <template #body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn
@@ -103,7 +172,48 @@
                 />
               </q-td>
             </template>
+            <template #no-data>
+              <div class="full-width text-center text-grey-7 q-py-md">
+                Sin ofertas de venta activas
+              </div>
+            </template>
           </q-table>
+
+          <div v-if="totalOfertas > 0" class="row items-center justify-end q-gutter-sm q-pa-sm">
+            <div class="text-caption text-grey-7">
+              Página {{ paginacionOfertas.page }} de {{ totalPaginasOfertas }}
+            </div>
+            <q-btn
+              flat
+              dense
+              round
+              icon="first_page"
+              :disable="paginacionOfertas.page === 1"
+              @click="irAPaginaOfertas(1)"
+            />
+            <q-btn
+              flat
+              dense
+              label="Anterior"
+              :disable="paginacionOfertas.page === 1"
+              @click="irAPaginaOfertas(paginacionOfertas.page - 1)"
+            />
+            <q-btn
+              flat
+              dense
+              label="Siguiente"
+              :disable="paginacionOfertas.page >= totalPaginasOfertas"
+              @click="irAPaginaOfertas(paginacionOfertas.page + 1)"
+            />
+            <q-btn
+              flat
+              dense
+              round
+              icon="last_page"
+              :disable="paginacionOfertas.page >= totalPaginasOfertas"
+              @click="irAPaginaOfertas(totalPaginasOfertas)"
+            />
+          </div>
         </q-card>
       </div>
     </div>
@@ -119,22 +229,30 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { Notify } from 'quasar'
 import { getOrdenes } from '@/services/ordenes'
 import { getOfertas } from '@/services/ofertas'
 import CancelarDialog from '@/components/mercado/CancelarDialog.vue'
+import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
+import EstadoBadge from '@/components/common/EstadoBadge.vue'
 
 const filtros = reactive({
   desde: '',
   hasta: '',
-  pagina: 1,
   tamanoPagina: 10,
 })
 
 const ordenes = ref([])
 const ofertas = ref([])
-const cargando = ref(false)
+const totalOrdenes = ref(0)
+const totalOfertas = ref(0)
+const cargandoOrdenes = ref(false)
+const cargandoOfertas = ref(false)
+const cargando = computed(() => cargandoOrdenes.value || cargandoOfertas.value)
+
+const paginacionOrdenes = reactive({ page: 1 })
+const paginacionOfertas = reactive({ page: 1 })
 
 const dialogAbierto = ref(false)
 const cancelacion = reactive({
@@ -148,8 +266,34 @@ const fechaInvalida = computed(() => {
 })
 
 const sinRegistros = computed(
-  () => !cargando.value && ordenes.value.length === 0 && ofertas.value.length === 0,
+  () => !cargando.value && totalOrdenes.value === 0 && totalOfertas.value === 0,
 )
+
+function porFechaDescendente(a, b) {
+  return new Date(b.fechaCreacion) - new Date(a.fechaCreacion)
+}
+
+const ordenesOrdenadas = computed(() => [...ordenes.value].sort(porFechaDescendente))
+const ofertasOrdenadas = computed(() => [...ofertas.value].sort(porFechaDescendente))
+
+const totalPaginasOrdenes = computed(() =>
+  Math.max(1, Math.ceil(totalOrdenes.value / filtros.tamanoPagina)),
+)
+const totalPaginasOfertas = computed(() =>
+  Math.max(1, Math.ceil(totalOfertas.value / filtros.tamanoPagina)),
+)
+
+watch(() => filtros.tamanoPagina, cargar)
+
+function calcularTotalRestante(row, totalOriginalField) {
+  if (row.totalPendiente != null) return row.totalPendiente
+  if (row.cantidadPendiente == null || row.precioUnitario == null) return row[totalOriginalField]
+  return row.cantidadPendiente * row.precioUnitario
+}
+
+function formatearMonto(valor) {
+  return typeof valor === 'number' ? valor.toFixed(4) : (valor ?? '-')
+}
 
 const columnasOrdenes = [
   {
@@ -164,24 +308,40 @@ const columnasOrdenes = [
     field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`,
     align: 'left',
   },
-  { name: 'precioUnitario', label: 'Precio unitario', field: 'precioUnitario', align: 'right' },
+  {
+    name: 'precioUnitario',
+    label: 'Precio unitario',
+    field: 'precioUnitario',
+    align: 'right',
+    classes: 'xc-figure',
+  },
   {
     name: 'cantidadOriginal',
     label: 'Cantidad original',
     field: 'cantidadOriginal',
     align: 'right',
+    classes: 'xc-figure',
   },
   {
     name: 'cantidadPendiente',
     label: 'Cantidad restante',
     field: 'cantidadPendiente',
     align: 'right',
+    classes: 'xc-figure',
   },
   {
     name: 'totalComprometido',
     label: 'Total original',
     field: 'totalComprometido',
     align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'totalRestante',
+    label: 'Total restante',
+    field: (row) => formatearMonto(calcularTotalRestante(row, 'totalComprometido')),
+    align: 'right',
+    classes: 'xc-figure',
   },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
   { name: 'acciones', label: '', field: 'acciones', align: 'right' },
@@ -200,46 +360,93 @@ const columnasOfertas = [
     field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`,
     align: 'left',
   },
-  { name: 'precioUnitario', label: 'Precio unitario', field: 'precioUnitario', align: 'right' },
+  {
+    name: 'precioUnitario',
+    label: 'Precio unitario',
+    field: 'precioUnitario',
+    align: 'right',
+    classes: 'xc-figure',
+  },
   {
     name: 'cantidadOriginal',
     label: 'Cantidad original',
     field: 'cantidadOriginal',
     align: 'right',
+    classes: 'xc-figure',
   },
   {
     name: 'cantidadPendiente',
     label: 'Cantidad restante',
     field: 'cantidadPendiente',
     align: 'right',
+    classes: 'xc-figure',
   },
-  { name: 'totalEsperado', label: 'Total original', field: 'totalEsperado', align: 'right' },
+  {
+    name: 'totalEsperado',
+    label: 'Total original',
+    field: 'totalEsperado',
+    align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'totalRestante',
+    label: 'Total restante',
+    field: (row) => formatearMonto(calcularTotalRestante(row, 'totalEsperado')),
+    align: 'right',
+    classes: 'xc-figure',
+  },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
   { name: 'acciones', label: '', field: 'acciones', align: 'right' },
 ]
 
 onMounted(cargar)
 
+function filtroBase() {
+  return {
+    desde: filtros.desde || undefined,
+    hasta: filtros.hasta || undefined,
+    tamanoPagina: filtros.tamanoPagina,
+  }
+}
+
+async function cargarOrdenes() {
+  cargandoOrdenes.value = true
+  try {
+    const { data } = await getOrdenes({ ...filtroBase(), pagina: paginacionOrdenes.page })
+    ordenes.value = data.ordenes || []
+    totalOrdenes.value = data.totalRegistros ?? ordenes.value.length
+  } finally {
+    cargandoOrdenes.value = false
+  }
+}
+
+async function cargarOfertas() {
+  cargandoOfertas.value = true
+  try {
+    const { data } = await getOfertas({ ...filtroBase(), pagina: paginacionOfertas.page })
+    ofertas.value = data.ofertas || []
+    totalOfertas.value = data.totalRegistros ?? ofertas.value.length
+  } finally {
+    cargandoOfertas.value = false
+  }
+}
+
 async function cargar() {
   if (fechaInvalida.value) return
 
-  cargando.value = true
+  paginacionOrdenes.page = 1
+  paginacionOfertas.page = 1
+  await Promise.all([cargarOrdenes(), cargarOfertas()])
+}
 
-  try {
-    const params = {
-      desde: filtros.desde || undefined,
-      hasta: filtros.hasta || undefined,
-      pagina: filtros.pagina,
-      tamanoPagina: filtros.tamanoPagina,
-    }
+function irAPaginaOrdenes(pagina) {
+  paginacionOrdenes.page = pagina
+  cargarOrdenes()
+}
 
-    const [ordenesResp, ofertasResp] = await Promise.all([getOrdenes(params), getOfertas(params)])
-
-    ordenes.value = ordenesResp.data.ordenes || []
-    ofertas.value = ofertasResp.data.ofertas || []
-  } finally {
-    cargando.value = false
-  }
+function irAPaginaOfertas(pagina) {
+  paginacionOfertas.page = pagina
+  cargarOfertas()
 }
 
 function formatearFecha(fecha) {

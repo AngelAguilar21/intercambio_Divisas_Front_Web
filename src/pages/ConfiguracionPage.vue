@@ -22,18 +22,28 @@
       <q-banner
         v-if="!authStore.isAuthenticated"
         dense
-        class="bg-blue-1 text-blue-9 q-mt-md"
+        class="xchang-banner xchang-banner--info q-mt-md"
         rounded
       >
         No has iniciado sesión. El tema se aplicará solo localmente. Al iniciar sesión, se usará el
         tema guardado en tu cuenta.
       </q-banner>
 
-      <q-banner v-if="successMessage" dense class="bg-green-1 text-green-9 q-mt-md" rounded>
+      <q-banner
+        v-if="successMessage"
+        dense
+        class="xchang-banner xchang-banner--success q-mt-md"
+        rounded
+      >
         {{ successMessage }}
       </q-banner>
 
-      <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-md" rounded>
+      <q-banner
+        v-if="errorMessage"
+        dense
+        class="xchang-banner xchang-banner--error q-mt-md"
+        rounded
+      >
         {{ errorMessage }}
       </q-banner>
     </q-card>

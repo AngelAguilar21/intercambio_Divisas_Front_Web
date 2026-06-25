@@ -86,27 +86,30 @@
       >
         <template #body-cell-par="props">
           <q-td :props="props">
-            <span class="text-weight-medium">
-              {{ props.row.monedaEntrega }}/{{ props.row.monedaObtiene }}
-            </span>
+            <ParMonedaChip :origen="props.row.monedaEntrega" :destino="props.row.monedaObtiene" />
           </q-td>
         </template>
 
         <template #body-cell-mayorPrecioCompra="props">
-          <q-td :props="props" class="text-right text-blue">
+          <q-td :props="props" class="text-right text-blue xc-figure">
             {{ formatearDecimal(props.row.mayorPrecioCompra) }}
           </q-td>
         </template>
 
         <template #body-cell-menorPrecioVenta="props">
-          <q-td :props="props" class="text-right text-green">
+          <q-td :props="props" class="text-right text-green xc-figure">
             {{ formatearDecimal(props.row.menorPrecioVenta) }}
           </q-td>
         </template>
 
         <template #body-cell-margen="props">
-          <q-td :props="props" class="text-right">
-            {{ formatearDecimal(props.row.margen) }}
+          <q-td :props="props" class="text-right xc-figure">
+            <span
+              class="xc-margen-badge"
+              :class="props.row.margen >= 0 ? 'xc-margen-positivo' : 'xc-margen-negativo'"
+            >
+              {{ formatearDecimal(props.row.margen) }}
+            </span>
           </q-td>
         </template>
 
@@ -124,7 +127,7 @@
       </q-table>
     </q-card>
 
-    <q-banner v-if="errorMessage" dense rounded class="bg-red-1 text-red-9 q-mt-md">
+    <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error q-mt-md">
       {{ errorMessage }}
     </q-banner>
   </q-page>
@@ -135,6 +138,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMonedas } from '@/services/monedas'
 import { getListadoPares } from '@/services/preciosPares'
+import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
 
 const router = useRouter()
 
@@ -294,3 +298,22 @@ function formatearDecimal(valor) {
   })
 }
 </script>
+
+<style scoped>
+.xc-margen-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-weight: 700;
+}
+
+.xc-margen-positivo {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+}
+
+.xc-margen-negativo {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+</style>

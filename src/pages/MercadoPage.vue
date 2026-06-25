@@ -9,6 +9,7 @@
       </div>
     </div>
 
+    <!-- Filtros -->
     <q-card flat bordered class="q-pa-md q-mb-md">
       <div class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-2">
@@ -58,10 +59,12 @@
         </div>
 
         <div class="col-12 col-md-2">
-          <q-toggle
-            v-model="filtro.colapsarParesInversos"
-            label="Colapsar inversos"
-            @update:model-value="buscar"
+          <q-btn
+            :color="filtro.colapsarParesInversos ? 'primary' : undefined"
+            :outline="!filtro.colapsarParesInversos"
+            class="full-width"
+            label="Colapsar pares inversos"
+            @click="toggleColapsarInversos"
           />
         </div>
 
@@ -71,6 +74,7 @@
       </div>
     </q-card>
 
+    <!-- Tabla -->
     <q-card flat bordered>
       <q-table
         v-model:pagination="paginacion"
@@ -80,7 +84,7 @@
         :loading="cargando"
         flat
         binary-state-sort
-        :rows-per-page-options="[10, 20, 40, 100, 200, 400, 0]"
+        :rows-per-page-options="[]"
         @request="onRequest"
         @row-click="abrirDetalle"
       >
@@ -93,13 +97,13 @@
         </template>
 
         <template #body-cell-mayorPrecioCompra="props">
-          <q-td :props="props" class="text-right text-blue">
+          <q-td :props="props" class="text-right xchang-buy-line">
             {{ formatearDecimal(props.row.mayorPrecioCompra) }}
           </q-td>
         </template>
 
         <template #body-cell-menorPrecioVenta="props">
-          <q-td :props="props" class="text-right text-green">
+          <q-td :props="props" class="text-right xchang-sell-line">
             {{ formatearDecimal(props.row.menorPrecioVenta) }}
           </q-td>
         </template>
@@ -121,10 +125,71 @@
             />
           </q-td>
         </template>
+
+        <!-- Paginación personalizada con tooltips -->
+        <template #pagination="scope">
+          <div class="row items-center no-wrap q-gutter-xs">
+            <span class="text-caption text-grey-7 q-mr-xs">
+              Registros por página:
+            </span>
+            <q-select
+              v-model="paginacion.rowsPerPage"
+              :options="opcionesRegistrosPorPagina"
+              dense
+              outlined
+              style="width: 88px"
+              emit-value
+              map-options
+              @update:model-value="buscar"
+            />
+
+            <q-btn
+              flat
+              dense
+              label="<<"
+              :disable="scope.isFirstPage"
+              @click="scope.firstPage()"
+            >
+              <q-tooltip>Primera página</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              dense
+              label="<"
+              :disable="scope.isFirstPage"
+              @click="scope.prevPage()"
+            >
+              <q-tooltip>Página anterior</q-tooltip>
+            </q-btn>
+
+            <span class="text-caption q-px-xs">
+              {{ scope.pagination.page }} / {{ scope.pagesNumber || 1 }}
+            </span>
+
+            <q-btn
+              flat
+              dense
+              label=">"
+              :disable="scope.isLastPage"
+              @click="scope.nextPage()"
+            >
+              <q-tooltip>Página siguiente</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              dense
+              label=">>"
+              :disable="scope.isLastPage"
+              @click="scope.lastPage()"
+            >
+              <q-tooltip>Última página</q-tooltip>
+            </q-btn>
+          </div>
+        </template>
       </q-table>
     </q-card>
 
-    <q-banner v-if="errorMessage" dense rounded class="bg-red-1 text-red-9 q-mt-md">
+    <q-banner v-if="errorMessage" dense rounded class="xchang-banner xchang-banner--error q-mt-md">
       {{ errorMessage }}
     </q-banner>
   </q-page>
@@ -146,6 +211,16 @@ const criterioOptions = [
   { label: 'Mayor precio de compra', value: 'MayorPrecioCompra' },
   { label: 'Menor precio de venta', value: 'MenorPrecioVenta' },
   { label: 'Margen', value: 'Margen' },
+]
+
+const opcionesRegistrosPorPagina = [
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '40', value: 40 },
+  { label: '100', value: 100 },
+  { label: '200', value: 200 },
+  { label: '400', value: 400 },
+  { label: 'Todos', value: 0 },
 ]
 
 const filtro = reactive({
@@ -205,7 +280,6 @@ onMounted(async () => {
 async function cargarMonedas() {
   try {
     const { data } = await getMonedas()
-
     const lista = Array.isArray(data) ? data : data.monedas || data.registros || []
 
     monedaIsoOptions.value = [
@@ -213,11 +287,7 @@ async function cargarMonedas() {
       ...lista.map((m) => {
         const codigo = m.codigoISO || m.codigoIso || m.codigo || m.CodigoIso || m.CodigoISO
         const nombre = m.nombre || m.Nombre || ''
-
-        return {
-          label: `${codigo} - ${nombre}`,
-          value: codigo,
-        }
+        return { label: `${codigo} - ${nombre}`, value: codigo }
       }),
     ]
   } catch {
@@ -227,6 +297,11 @@ async function cargarMonedas() {
 
 function alternarDireccion() {
   filtro.direccion = filtro.direccion === 'desc' ? 'asc' : 'desc'
+  buscar()
+}
+
+function toggleColapsarInversos() {
+  filtro.colapsarParesInversos = !filtro.colapsarParesInversos
   buscar()
 }
 
@@ -262,7 +337,8 @@ async function cargarPares() {
     pares.value = data.registros || []
     paginacion.value.rowsNumber = data.totalRegistros || 0
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo cargar el listado de pares.'
+    errorMessage.value =
+      error.response?.data?.mensaje || 'No se pudo cargar el listado de pares.'
   } finally {
     cargando.value = false
   }
@@ -276,13 +352,8 @@ function abrirDetalle(evt, row) {
 
   router.push({
     name: 'par-detalle',
-    params: {
-      parMonedaId: row.parMonedaId,
-    },
-    query: {
-      origen: row.monedaEntrega,
-      destino: row.monedaObtiene,
-    },
+    params: { parMonedaId: row.parMonedaId },
+    query: { origen: row.monedaEntrega, destino: row.monedaObtiene },
   })
 }
 

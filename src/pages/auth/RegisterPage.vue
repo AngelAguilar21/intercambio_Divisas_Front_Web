@@ -143,8 +143,8 @@ async function onSubmit() {
   errorMessage.value = ''
   successMessage.value = ''
   try {
-    const { data } = await authStore.register(form)
-    successMessage.value = data.mensaje
+    const data = await authStore.register(form)
+    successMessage.value = data?.mensaje ?? 'Registro exitoso'
     setTimeout(() => router.push({ name: 'login' }), 2500)
   } catch (error) {
     errorMessage.value = error.response?.data?.mensaje || 'No se pudo completar el registro.'

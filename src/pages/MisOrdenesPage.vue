@@ -60,14 +60,25 @@
         </div>
 
         <div class="col-12" v-if="form.cantidad && form.precioUnitario">
-          <q-banner dense class="bg-blue-1 text-blue-9" rounded>
-            Pagarás aproximadamente {{ (form.cantidad * form.precioUnitario).toFixed(4) }} en la moneda de pago.
+          <q-banner dense class="xchang-banner xchang-banner--info" rounded>
+            Pagarás aproximadamente
+            <span class="xc-figure text-weight-bold">{{
+              (form.cantidad * form.precioUnitario).toFixed(4)
+            }}</span>
+            en la moneda de pago.
           </q-banner>
         </div>
 
         <div class="col-12">
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9" rounded>{{ errorMessage }}</q-banner>
-          <q-banner v-if="successMessage" dense class="bg-green-1 text-green-9 q-mt-sm" rounded>
+          <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>{{
+            errorMessage
+          }}</q-banner>
+          <q-banner
+            v-if="successMessage"
+            dense
+            class="xchang-banner xchang-banner--success q-mt-sm"
+            rounded
+          >
             {{ successMessage }}
           </q-banner>
         </div>
@@ -84,6 +95,16 @@
       </div>
 
       <q-table :rows="ordenes" :columns="columnas" row-key="ordenCompraId" :loading="cargando" flat>
+        <template #body-cell-par="props">
+          <q-td :props="props">
+            <ParMonedaChip :origen="props.row.monedaOrigen" :destino="props.row.monedaDestino" />
+          </q-td>
+        </template>
+        <template #body-cell-estado="props">
+          <q-td :props="props">
+            <EstadoBadge :estado="props.row.estado" />
+          </q-td>
+        </template>
         <template #body-cell-acciones="props">
           <q-td :props="props">
             <q-btn
@@ -116,6 +137,8 @@ import { getMonedas } from '@/services/monedas'
 import { resolveParMonedaId } from '@/services/preciosPares'
 import { getOrdenes, crearOrden } from '@/services/ordenes'
 import CancelarDialog from '@/components/mercado/CancelarDialog.vue'
+import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
+import EstadoBadge from '@/components/common/EstadoBadge.vue'
 
 const monedaOptions = ref([])
 const vigenciaOptions = [
@@ -125,7 +148,13 @@ const vigenciaOptions = [
   { label: '24 horas', value: 24 },
 ]
 
-const form = reactive({ monedaOrigenId: null, monedaDestinoId: null, cantidad: null, precioUnitario: null, vigenciaHoras: 24 })
+const form = reactive({
+  monedaOrigenId: null,
+  monedaDestinoId: null,
+  cantidad: null,
+  precioUnitario: null,
+  vigenciaHoras: 24,
+})
 const creando = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -134,10 +163,33 @@ const ordenes = ref([])
 const cargando = ref(false)
 
 const columnas = [
-  { name: 'par', label: 'Par', field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`, align: 'left' },
-  { name: 'cantidadOriginal', label: 'Cantidad', field: 'cantidadOriginal', align: 'right' },
-  { name: 'cantidadPendiente', label: 'Pendiente', field: 'cantidadPendiente', align: 'right' },
-  { name: 'precioUnitario', label: 'Precio', field: 'precioUnitario', align: 'right' },
+  {
+    name: 'par',
+    label: 'Par',
+    field: (row) => `${row.monedaOrigen}/${row.monedaDestino}`,
+    align: 'left',
+  },
+  {
+    name: 'cantidadOriginal',
+    label: 'Cantidad',
+    field: 'cantidadOriginal',
+    align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'cantidadPendiente',
+    label: 'Pendiente',
+    field: 'cantidadPendiente',
+    align: 'right',
+    classes: 'xc-figure',
+  },
+  {
+    name: 'precioUnitario',
+    label: 'Precio',
+    field: 'precioUnitario',
+    align: 'right',
+    classes: 'xc-figure',
+  },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'left' },
   {
     name: 'fechaExpiracion',
@@ -153,7 +205,11 @@ const dialogAbierto = ref(false)
 
 onMounted(async () => {
   const { data } = await getMonedas()
-  monedaOptions.value = data.map((m) => ({ label: `${m.codigoISO} - ${m.nombre}`, value: m.monedaId, iso: m.codigoISO }))
+  monedaOptions.value = data.map((m) => ({
+    label: `${m.codigoISO} - ${m.nombre}`,
+    value: m.monedaId,
+    iso: m.codigoISO,
+  }))
   await cargarOrdenes()
 })
 
@@ -197,7 +253,10 @@ async function onCrear() {
     form.precioUnitario = null
     await cargarOrdenes()
   } catch (error) {
-    errorMessage.value = error.response?.data?.error || error.response?.data?.mensaje || 'No se pudo publicar la orden.'
+    errorMessage.value =
+      error.response?.data?.error ||
+      error.response?.data?.mensaje ||
+      'No se pudo publicar la orden.'
   } finally {
     creando.value = false
   }
@@ -209,7 +268,10 @@ function abrirCancelacion(row) {
 }
 
 function onCancelado(resultado) {
-  Notify.create({ type: 'positive', message: `Orden cancelada. Reembolso: ${resultado.montoReembolsado} ${resultado.monedaReembolso}` })
+  Notify.create({
+    type: 'positive',
+    message: `Orden cancelada. Reembolso: ${resultado.montoReembolsado} ${resultado.monedaReembolso}`,
+  })
   cargarOrdenes()
 }
 </script>

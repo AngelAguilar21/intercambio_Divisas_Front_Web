@@ -4,7 +4,11 @@ const routes = [
     component: () => import('@/layouts/AuthLayout.vue'),
     meta: { guestOnly: true },
     children: [
-      { path: '/login', name: 'login', component: () => import('@/pages/auth/LoginPage.vue') },
+      {
+        path: '/login',
+        name: 'login',
+        component: () => import('@/pages/auth/LoginPage.vue'),
+      },
       {
         path: '/registro',
         name: 'register',
@@ -31,24 +35,31 @@ const routes = [
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
-      { path: '', name: 'dashboard', component: () => import('@/pages/DashboardPage.vue') },
-
+      {
+        path: '',
+        name: 'dashboard',
+        component: () => import('@/pages/DashboardPage.vue'),
+      },
       {
         path: 'monedas',
         name: 'monedas',
         component: () => import('@/pages/MercadoPage.vue'),
       },
       {
+        path: 'monedas/:parMonedaId',
+        name: 'par-detalle',
+        component: () => import('@/pages/ParDetallePage.vue'),
+        props: true,
+      },
+      {
         path: 'mercado',
         redirect: { name: 'monedas' },
       },
-
       {
         path: 'configuracion',
         name: 'configuracion',
         component: () => import('@/pages/ConfiguracionPage.vue'),
       },
-
       {
         path: 'perfil',
         name: 'perfil',
@@ -127,7 +138,10 @@ const routes = [
   {
     path: '/admin',
     component: () => import('@/layouts/MainLayout.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true },
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
     children: [
       {
         path: '',
@@ -144,7 +158,6 @@ const routes = [
         name: 'admin-auditoria',
         component: () => import('@/pages/admin/AdminAuditoriaPage.vue'),
       },
-
       {
         path: 'disputas',
         name: 'admin-disputas',

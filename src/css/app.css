@@ -274,3 +274,96 @@ body {
     padding: 52px 16px;
   }
 }
+
+/* Cabecera compacta de pagina (alineada a la izquierda): reutiliza el patron
+   kicker + titulo + barra de acento, pero sin centrar ni limitar el ancho
+   como en .xc-section-head, pensado para encabezados de pantallas internas. */
+.xc-page-head {
+  margin-bottom: 24px;
+}
+
+.xc-page-head .xc-section-kicker {
+  margin-bottom: 10px;
+}
+
+.xc-page-head .xc-section-title {
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  margin: 0 0 10px;
+}
+
+.xc-page-head .xc-section-bar {
+  margin: 0;
+  width: 48px;
+}
+
+.xc-page-head-desc {
+  color: var(--xchang-text-secondary);
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+/* Tarjeta "premium" interactiva: barra de acento en gradiente que aparece al
+   pasar el cursor, junto con una leve elevacion. Pensada para tarjetas que
+   representan un item navegable/comparable (billetera, resumen de mercado). */
+.xc-card-accent-hover {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.xc-card-accent-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--xchang-blue) 0%, var(--xchang-blue-light) 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.xc-card-accent-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--xchang-shadow-md) !important;
+  border-color: transparent;
+}
+
+.xc-card-accent-hover:hover::before {
+  opacity: 1;
+}
+
+/* Tarjeta "premium" estatica: misma barra de acento, siempre visible, sin
+   elevacion al pasar el cursor. Pensada para contenedores de formularios o
+   tablas donde la tarjeta completa no es "clicable" como unidad. */
+.xc-card-accent {
+  position: relative;
+  overflow: hidden;
+}
+
+.xc-card-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--xchang-blue) 0%, var(--xchang-blue-light) 100%);
+}
+
+.xc-text-secondary {
+  color: var(--xchang-text-secondary);
+}
+
+/* Insignia de icono en cuadrado redondeado, azul muy claro: usada junto a
+   titulos de tarjeta/seccion para dar peso visual sin agregar color nuevo. */
+.xc-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--xchang-blue-pale);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

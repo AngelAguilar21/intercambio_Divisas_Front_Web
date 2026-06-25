@@ -62,8 +62,8 @@
             outlined
             dense
             label="Cantidad a obtener"
-            :error="orden.cantidadAObtener !== null && orden.cantidadAObtener <= 0"
-            error-message="La cantidad debe ser mayor a 0"
+            :error="(orden.cantidadAObtener !== null && orden.cantidadAObtener <= 0) || saldoInsuficienteOrden"
+            :error-message="orden.cantidadAObtener !== null && orden.cantidadAObtener <= 0 ? 'La cantidad debe ser mayor a 0' : 'Saldo insuficiente'"
             class="q-mb-sm"
           />
 
@@ -231,9 +231,8 @@
             outlined
             dense
             label="Cantidad a vender"
-            :hint="saldoOrigenTexto"
-            :error="ofertaCantidadError"
-            :error-message="ofertaCantidadMensajeError"
+            :error="(oferta.cantidadAVender !== null && oferta.cantidadAVender <= 0) || saldoInsuficiente"
+            :error-message="oferta.cantidadAVender !== null && oferta.cantidadAVender <= 0 ? 'La cantidad debe ser mayor a 0' : 'Saldo insuficiente'"
             class="q-mb-sm"
           />
 
@@ -448,6 +447,89 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="ofertaConfirmDialog">
+      <q-card style="min-width: 380px">
+        <q-card-section>
+          <div class="text-h6">Confirmar oferta de venta</div>
+        </q-card-section>
+
+        <q-card-section class="q-gutter-y-xs">
+          <div>Cantidad a vender: <strong>{{ formatearDecimal(oferta.cantidadAVender) }} {{ monedaOrigen }}</strong></div>
+          <div>Precio unitario: <strong>{{ formatearDecimal(oferta.precioUnitario) }}</strong></div>
+          <div>Total esperado: <strong>{{ formatearDecimal(totalOferta) }} {{ monedaDestino }}</strong></div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Confirmar" :loading="loadingOferta" @click="confirmarOferta" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="ordenResumenDialog">
+      <q-card style="min-width: 420px">
+        <q-card-section>
+          <div class="text-h6">Orden con ejecución automática</div>
+          <div class="text-body2 text-grey-7">
+            El precio ingresado es igual o mayor al menor precio de venta disponible. La orden se ejecutará automáticamente contra ofertas de venta compatibles, comenzando por las de menor precio.
+          </div>
+        </q-card-section>
+
+        <q-card-section v-if="resumenOrden" class="q-gutter-y-xs">
+          <div>Precio mínimo de compra: <strong>{{ formatearDecimal(resumenOrden.precioMinimo ?? resumenOrden.PrecioMinimo) }}</strong></div>
+          <div>Precio máximo de compra: <strong>{{ formatearDecimal(resumenOrden.precioMaximo ?? resumenOrden.PrecioMaximo) }}</strong></div>
+          <div>Precio promedio de compra: <strong>{{ formatearDecimal(resumenOrden.precioPromedio ?? resumenOrden.PrecioPromedio) }}</strong></div>
+          <q-separator class="q-my-sm" />
+          <div>Cantidad a obtener: <strong>{{ formatearDecimal(orden.cantidadAObtener) }} {{ monedaDestino }}</strong></div>
+          <div>Precio unitario ingresado: <strong>{{ formatearDecimal(orden.precioUnitario) }}</strong></div>
+          <div>Total comprometido: <strong>{{ formatearDecimal(totalOrden) }} {{ monedaOrigen }}</strong></div>
+          <template v-if="(resumenOrden.cantidadEjecutadaEstimada ?? resumenOrden.CantidadEjecutadaEstimada) !== undefined">
+            <q-separator class="q-my-sm" />
+            <div class="text-subtitle2">Ejecución estimada</div>
+            <div>Cantidad ejecutada inmediatamente: <strong>{{ formatearDecimal(resumenOrden.cantidadEjecutadaEstimada ?? resumenOrden.CantidadEjecutadaEstimada) }}</strong></div>
+            <div>Cantidad pendiente en libro: <strong>{{ formatearDecimal(resumenOrden.cantidadPendienteEstimada ?? resumenOrden.CantidadPendienteEstimada) }}</strong></div>
+          </template>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Confirmar" :loading="loadingOrden" @click="confirmarOrden" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="ofertaResumenDialog">
+      <q-card style="min-width: 420px">
+        <q-card-section>
+          <div class="text-h6">Oferta con ejecución automática</div>
+          <div class="text-body2 text-grey-7">
+            El precio ingresado es igual o menor al mayor precio de compra disponible. La oferta se ejecutará automáticamente contra órdenes de compra compatibles.
+          </div>
+        </q-card-section>
+
+        <q-card-section v-if="resumenOferta" class="q-gutter-y-xs">
+          <div>Precio mínimo de venta: <strong>{{ formatearDecimal(resumenOferta.precioMinimo ?? resumenOferta.PrecioMinimo) }}</strong></div>
+          <div>Precio máximo de venta: <strong>{{ formatearDecimal(resumenOferta.precioMaximo ?? resumenOferta.PrecioMaximo) }}</strong></div>
+          <div>Precio promedio de venta: <strong>{{ formatearDecimal(resumenOferta.precioPromedio ?? resumenOferta.PrecioPromedio) }}</strong></div>
+          <q-separator class="q-my-sm" />
+          <div>Cantidad a vender: <strong>{{ formatearDecimal(oferta.cantidadAVender) }} {{ monedaOrigen }}</strong></div>
+          <div>Precio unitario ingresado: <strong>{{ formatearDecimal(oferta.precioUnitario) }}</strong></div>
+          <div>Total esperado: <strong>{{ formatearDecimal(totalOferta) }} {{ monedaDestino }}</strong></div>
+          <template v-if="(resumenOferta.cantidadEjecutadaEstimada ?? resumenOferta.CantidadEjecutadaEstimada) !== undefined">
+            <q-separator class="q-my-sm" />
+            <div class="text-subtitle2">Ejecución estimada</div>
+            <div>Cantidad ejecutada inmediatamente: <strong>{{ formatearDecimal(resumenOferta.cantidadEjecutadaEstimada ?? resumenOferta.CantidadEjecutadaEstimada) }}</strong></div>
+            <div>Cantidad pendiente en libro: <strong>{{ formatearDecimal(resumenOferta.cantidadPendienteEstimada ?? resumenOferta.CantidadPendienteEstimada) }}</strong></div>
+          </template>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Confirmar" :loading="loadingOferta" @click="confirmarOferta" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -456,8 +538,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Notify } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
-import { getLibroOrdenes, crearOrden, crearOferta, getResumenOferta } from '@/services/mercado'
-import { getBilletera } from '@/services/billetera'
+import { getLibroOrdenes, crearOrden, crearOferta, getResumenOferta, getResumenOrden } from '@/services/mercado'
 import {
   getResumen as getResumenCompra,
   confirmar as confirmarCompra,
@@ -470,6 +551,7 @@ import {
   buscarRuta as buscarRutaVentaService,
   getTiempoBusqueda as getTiempoBusquedaVenta,
 } from '@/services/ventaInmediata'
+import { getBilletera } from '@/services/billetera'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -543,6 +625,13 @@ const loadingVenta = ref(false)
 const loadingRutaCompra = ref(false)
 const loadingRutaVenta = ref(false)
 
+const ofertaConfirmDialog = ref(false)
+const ofertaResumenDialog = ref(false)
+const resumenOferta = ref(null)
+const ordenResumenDialog = ref(false)
+const resumenOrden = ref(null)
+const billetera = ref([])
+
 const columnasLibro = [
   {
     name: 'fecha',
@@ -574,6 +663,16 @@ const totalOrden = computed(() => numero(orden.cantidadAObtener) * numero(orden.
 
 const totalOferta = computed(() => numero(oferta.cantidadAVender) * numero(oferta.precioUnitario))
 
+const saldoInsuficienteOrden = computed(
+  () =>
+    saldoMonedaOrigen.value !== null &&
+    totalOrden.value > 0 &&
+    totalOrden.value > saldoMonedaOrigen.value,
+)
+
+const menorPrecioVenta = computed(() => {
+  if (!libro.value?.ofertasVenta?.length) return null
+  return Math.min(...libro.value.ofertasVenta.map((o) => o.precioUnitario))
 const saldoInsuficiente = computed(() => {
   if (saldoOrigen.value === null) return false
   const cantidad = numero(oferta.cantidadAVender)
@@ -600,8 +699,31 @@ const ofertaCantidadMensajeError = computed(() => {
 })
 
 const ordenValida = computed(
-  () => numero(orden.cantidadAObtener) > 0 && numero(orden.precioUnitario) > 0,
+  () =>
+    numero(orden.cantidadAObtener) > 0 &&
+    numero(orden.precioUnitario) > 0 &&
+    !saldoInsuficienteOrden.value,
 )
+
+const saldoMonedaOrigen = computed(() => {
+  if (!billetera.value?.length) return null
+  const entrada = billetera.value.find(
+    (b) => (b.codigoISO || b.codigoIso || b.codigo || '').toUpperCase() === monedaOrigen.value,
+  )
+  return entrada?.saldo ?? null
+})
+
+const saldoInsuficiente = computed(
+  () =>
+    saldoMonedaOrigen.value !== null &&
+    numero(oferta.cantidadAVender) > 0 &&
+    numero(oferta.cantidadAVender) > saldoMonedaOrigen.value,
+)
+
+const mayorPrecioCompra = computed(() => {
+  if (!libro.value?.ordenesCompra?.length) return null
+  return Math.max(...libro.value.ordenesCompra.map((o) => o.precioUnitario))
+})
 
 const ofertaValida = computed(
   () =>
@@ -630,6 +752,10 @@ const ejecucionParcial = computed(() => {
 })
 
 onMounted(async () => {
+  await cargarLibro()
+  await cargarBilletera()
+  await cargarTiempoBusquedaCompra()
+  await cargarTiempoBusquedaVenta()
   await Promise.all([cargarLibro(), cargarBilletera()])
   await Promise.all([cargarTiempoBusquedaCompra(), cargarTiempoBusquedaVenta()])
 })
@@ -684,10 +810,11 @@ async function cargarLibro() {
     libro.value = data
 
     if (!orden.precioUnitario && data.ordenesCompra?.length) {
-      orden.precioUnitario = data.ordenesCompra[0].precioUnitario
+      orden.precioUnitario = Math.max(...data.ordenesCompra.map((o) => o.precioUnitario))
     }
 
     if (!oferta.precioUnitario && data.ofertasVenta?.length) {
+      oferta.precioUnitario = Math.min(...data.ofertasVenta.map((o) => o.precioUnitario))
       const precios = data.ofertasVenta.map((o) => Number(o.precioUnitario)).filter((p) => p > 0)
       if (precios.length) oferta.precioUnitario = Math.min(...precios)
     }
@@ -699,6 +826,36 @@ async function cargarLibro() {
 }
 
 async function crearOrdenCompra() {
+  errorMessage.value = ''
+
+  if (menorPrecioVenta.value !== null && orden.precioUnitario >= menorPrecioVenta.value) {
+    await obtenerResumenOrden()
+  } else {
+    await ejecutarOrdenDirecta()
+  }
+}
+
+async function obtenerResumenOrden() {
+  loadingOrden.value = true
+  errorMessage.value = ''
+
+  try {
+    const { data } = await getResumenOrden({
+      parMonedaId: parMonedaId.value,
+      cantidadAObtener: orden.cantidadAObtener,
+      precioUnitario: orden.precioUnitario,
+    })
+    resumenOrden.value = data
+    ordenResumenDialog.value = true
+  } catch (error) {
+    errorMessage.value =
+      error.response?.data?.mensaje || 'No se pudo obtener el resumen de la orden.'
+  } finally {
+    loadingOrden.value = false
+  }
+}
+
+async function ejecutarOrdenDirecta() {
   loadingOrden.value = true
   errorMessage.value = ''
 
@@ -714,6 +871,7 @@ async function crearOrdenCompra() {
 
     orden.cantidadAObtener = null
     await cargarLibro()
+    await cargarBilletera()
   } catch (error) {
     errorMessage.value = error.response?.data?.mensaje || 'No se pudo generar la orden.'
   } finally {
@@ -721,7 +879,72 @@ async function crearOrdenCompra() {
   }
 }
 
+async function confirmarOrden() {
+  ordenResumenDialog.value = false
+  loadingOrden.value = true
+  errorMessage.value = ''
+
+  try {
+    const { data } = await crearOrden({
+      parMonedaId: parMonedaId.value,
+      cantidadAObtener: orden.cantidadAObtener,
+      precioUnitario: orden.precioUnitario,
+    })
+
+    mostrarResultado(data)
+    Notify.create({ type: 'positive', message: 'Orden de compra generada.' })
+
+    orden.cantidadAObtener = null
+    await cargarLibro()
+    await cargarBilletera()
+  } catch (error) {
+    errorMessage.value = error.response?.data?.mensaje || 'No se pudo generar la orden.'
+  } finally {
+    loadingOrden.value = false
+  }
+}
+
+async function cargarBilletera() {
+  try {
+    const { data } = await getBilletera()
+    billetera.value = Array.isArray(data) ? data : data.saldos || data.billetera || data.registros || []
+  } catch {
+    billetera.value = []
+  }
+}
+
 async function crearOfertaVenta() {
+  errorMessage.value = ''
+
+  if (mayorPrecioCompra.value !== null && oferta.precioUnitario <= mayorPrecioCompra.value) {
+    await obtenerResumenOferta()
+  } else {
+    ofertaConfirmDialog.value = true
+  }
+}
+
+async function obtenerResumenOferta() {
+  loadingOferta.value = true
+  errorMessage.value = ''
+
+  try {
+    const { data } = await getResumenOferta({
+      parMonedaId: parMonedaId.value,
+      cantidadAVender: oferta.cantidadAVender,
+      precioUnitario: oferta.precioUnitario,
+    })
+    resumenOferta.value = data
+    ofertaResumenDialog.value = true
+  } catch (error) {
+    errorMessage.value = error.response?.data?.mensaje || 'No se pudo obtener el resumen de la oferta.'
+  } finally {
+    loadingOferta.value = false
+  }
+}
+
+async function confirmarOferta() {
+  ofertaConfirmDialog.value = false
+  ofertaResumenDialog.value = false
   loadingOferta.value = true
   errorMessage.value = ''
 
@@ -778,6 +1001,8 @@ async function ejecutarCrearOferta() {
     Notify.create({ type: 'positive', message: 'Oferta de venta generada.' })
 
     oferta.cantidadAVender = null
+    await cargarLibro()
+    await cargarBilletera()
     resumenOferta.value = null
     await Promise.all([cargarLibro(), cargarBilletera()])
   } catch (error) {

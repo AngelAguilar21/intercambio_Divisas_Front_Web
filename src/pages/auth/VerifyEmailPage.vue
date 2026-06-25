@@ -4,11 +4,11 @@
 
     <q-spinner v-if="loading" color="primary" size="40px" />
 
-    <q-banner v-else-if="errorMessage" dense class="bg-red-1 text-red-9" rounded>
+    <q-banner v-else-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>
       {{ errorMessage }}
     </q-banner>
 
-    <q-banner v-else dense class="bg-green-1 text-green-9" rounded>
+    <q-banner v-else dense class="xchang-banner xchang-banner--success" rounded>
       {{ successMessage }}
     </q-banner>
 

@@ -1,20 +1,20 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-page-container>
-      <q-page class="flex flex-center bg-grey-2">
-        <q-card class="auth-card" flat bordered>
-          <q-card-section class="text-center q-pb-none">
-            <div class="row items-center justify-center q-gutter-sm">
-              <q-icon name="currency_exchange" size="32px" color="primary" />
-              <div class="text-h5 text-weight-bold text-primary">X-Chang</div>
-            </div>
-            <div class="text-caption text-grey-7">Intercambio de divisas P2P</div>
-          </q-card-section>
+    <q-header class="xchang-header">
+      <q-toolbar>
+        <q-toolbar-title class="row items-center no-wrap text-weight-bold">
+          <q-icon name="currency_exchange" color="primary" class="q-mr-sm" />
+          X-Chang
+        </q-toolbar-title>
+        <q-btn flat round dense icon="close" :to="{ name: 'dashboard' }" aria-label="Cerrar" />
+      </q-toolbar>
+    </q-header>
 
-          <q-card-section>
-            <router-view />
-          </q-card-section>
-        </q-card>
+    <q-page-container>
+      <q-page class="flex flex-center q-pa-md">
+        <div class="auth-card">
+          <router-view />
+        </div>
       </q-page>
     </q-page-container>
   </q-layout>
@@ -23,6 +23,12 @@
 <style scoped>
 .auth-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
+}
+
+.xchang-header {
+  background: var(--xchang-surface);
+  color: var(--xchang-page-text);
+  box-shadow: var(--xchang-shadow-sm);
 }
 </style>

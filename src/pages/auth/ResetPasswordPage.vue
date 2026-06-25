@@ -3,7 +3,7 @@
     <div class="text-h6 q-mb-md">Restablecer contraseña</div>
 
     <template v-if="!token">
-      <q-banner dense class="bg-red-1 text-red-9" rounded>
+      <q-banner dense class="xchang-banner xchang-banner--error" rounded>
         El enlace no es válido. Solicita uno nuevo.
       </q-banner>
     </template>
@@ -36,19 +36,27 @@
         :rules="[(val) => val === form.nuevaPassword || 'Las contraseñas no coinciden']"
       />
 
-      <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9" rounded>
+      <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>
         {{ errorMessage }}
       </q-banner>
 
-      <q-banner v-if="successMessage" dense class="bg-green-1 text-green-9" rounded>
+      <q-banner v-if="successMessage" dense class="xchang-banner xchang-banner--success" rounded>
         {{ successMessage }}
       </q-banner>
 
-      <q-btn type="submit" color="primary" label="Restablecer" class="full-width" :loading="loading" />
+      <q-btn
+        type="submit"
+        color="primary"
+        label="Restablecer"
+        class="full-width"
+        :loading="loading"
+      />
     </q-form>
 
     <div class="text-center q-mt-md">
-      <router-link :to="{ name: 'login' }" class="text-primary">Volver a iniciar sesión</router-link>
+      <router-link :to="{ name: 'login' }" class="text-primary"
+        >Volver a iniciar sesión</router-link
+      >
     </div>
   </div>
 </template>

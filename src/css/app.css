@@ -1,1 +1,35 @@
 /* app global css */
+
+:root {
+  --xchang-buy-color: #1565c0;
+  --xchang-sell-color: #2e7d32;
+  --xchang-page-bg: #ffffff;
+  --xchang-page-text: #111827;
+}
+
+:root[data-theme='oscuro'] {
+  --xchang-buy-color: #64b5f6;
+  --xchang-sell-color: #81c784;
+  --xchang-page-bg: #1f2933;
+  --xchang-page-text: #f5f5f5;
+}
+
+body {
+  background: var(--xchang-page-bg);
+  color: var(--xchang-page-text);
+}
+
+.xchang-dark {
+  background: #1f2933;
+  color: #f5f5f5;
+}
+
+.xchang-buy-line {
+  color: var(--xchang-buy-color);
+  stroke: var(--xchang-buy-color);
+}
+
+.xchang-sell-line {
+  color: var(--xchang-sell-color);
+  stroke: var(--xchang-sell-color);
+}

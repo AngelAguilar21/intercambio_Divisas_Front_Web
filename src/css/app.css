@@ -33,3 +33,53 @@ body {
   color: var(--xchang-sell-color);
   stroke: var(--xchang-sell-color);
 }
+
+/* Mensajes/banners compatibles con tema claro y oscuro */
+
+.xchang-banner {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #f5f5f5;
+  color: #1f2933;
+}
+
+.xchang-banner--info {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-color: #90caf9;
+}
+
+.xchang-banner--empty {
+  background: #f5f5f5;
+  color: #1f2933;
+  border-color: #d0d0d0;
+}
+
+.xchang-banner--error {
+  background: #ffebee;
+  color: #b71c1c;
+  border-color: #ef9a9a;
+}
+
+.xchang-dark .xchang-banner {
+  background: #263238;
+  color: #f5f5f5;
+  border-color: #455a64;
+}
+
+.xchang-dark .xchang-banner--info {
+  background: #102a43;
+  color: #bbdefb;
+  border-color: #2f5f8f;
+}
+
+.xchang-dark .xchang-banner--empty {
+  background: #242424;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+.xchang-dark .xchang-banner--error {
+  background: #3b1518;
+  color: #ffcdd2;
+  border-color: #8b2f36;
+}

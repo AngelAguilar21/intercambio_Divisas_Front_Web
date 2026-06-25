@@ -42,7 +42,7 @@
       </div>
     </q-card>
 
-    <q-banner v-if="sinRegistros" dense class="bg-grey-2 text-grey-9 q-mb-md" rounded>
+    <q-banner v-if="sinRegistros" dense class="xchang-banner xchang-banner--empty q-mb-md" rounded>
       No existen órdenes ni ofertas activas
     </q-banner>
 

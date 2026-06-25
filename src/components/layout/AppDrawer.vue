@@ -61,7 +61,7 @@ const authStore = useAuthStore()
 const navLinks = computed(() => {
   if (!authStore.isAuthenticated) {
     return [
-      { key: 'dashboard', name: 'dashboard', label: 'Menú principal', icon: 'home' },
+      { key: 'landing', name: 'landing', label: 'Menú principal', icon: 'home' },
       {
         key: 'monedas',
         name: 'monedas',
@@ -99,7 +99,7 @@ function esActivo(link) {
 
 async function onLogout() {
   await authStore.logout()
-  router.push({ name: 'dashboard' })
+  router.push({ name: 'landing' })
 }
 </script>
 

@@ -6,7 +6,7 @@
           <q-icon name="currency_exchange" color="primary" class="q-mr-sm" />
           X-Chang
         </q-toolbar-title>
-        <q-btn flat round dense icon="close" :to="{ name: 'dashboard' }" aria-label="Cerrar" />
+        <q-btn flat round dense icon="close" :to="{ name: 'landing' }" aria-label="Cerrar" />
       </q-toolbar>
     </q-header>
 

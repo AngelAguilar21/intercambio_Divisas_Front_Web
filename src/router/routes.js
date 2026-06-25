@@ -1,5 +1,11 @@
 const routes = [
   {
+    path: '/',
+    name: 'landing',
+    component: () => import('@/pages/LandingPage.vue'),
+    meta: { guestOnly: true },
+  },
+  {
     path: '/auth',
     component: () => import('@/layouts/AuthLayout.vue'),
     meta: { guestOnly: true },
@@ -36,9 +42,10 @@ const routes = [
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'dashboard',
         component: () => import('@/pages/DashboardPage.vue'),
+        meta: { requiresAuth: true },
       },
       {
         path: 'monedas',

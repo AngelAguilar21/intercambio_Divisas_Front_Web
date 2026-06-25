@@ -160,7 +160,7 @@ function onAbrirNotificaciones() {}
 async function onLogout() {
   detenerNotificaciones()
   await authStore.logout()
-  router.push({ name: 'dashboard' })
+  router.push({ name: 'landing' })
 }
 </script>
 

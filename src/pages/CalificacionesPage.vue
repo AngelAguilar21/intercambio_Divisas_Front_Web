@@ -8,8 +8,14 @@
       <q-list v-if="pendientes.length" bordered separator>
         <q-item v-for="p in pendientes" :key="`${p.operacionTipo}-${p.operacionReferenciaId}`">
           <q-item-section>
-            <q-item-label>{{ p.contraparteNombre }} ({{ p.miRol === 'Comprador' ? 'vendedor' : 'comprador' }})</q-item-label>
-            <q-item-label caption>{{ p.par }} · {{ new Date(p.fecha).toLocaleString() }}</q-item-label>
+            <q-item-label
+              >{{ p.contraparteNombre }} ({{
+                p.miRol === 'Comprador' ? 'vendedor' : 'comprador'
+              }})</q-item-label
+            >
+            <q-item-label caption
+              >{{ p.par }} · {{ new Date(p.fecha).toLocaleString() }}</q-item-label
+            >
           </q-item-section>
           <q-item-section side>
             <q-btn color="primary" label="Calificar" size="sm" @click="abrirDialogo(p)" />
@@ -23,7 +29,9 @@
       <div class="text-subtitle1 text-weight-medium q-mb-sm">
         Calificaciones recibidas
         <q-badge v-if="resumen" color="primary" class="q-ml-sm">
-          {{ resumen.promedio != null ? resumen.promedio.toFixed(1) + ' / 5' : 'Sin calificaciones' }}
+          {{
+            resumen.promedio != null ? resumen.promedio.toFixed(1) + ' / 5' : 'Sin calificaciones'
+          }}
         </q-badge>
       </div>
 
@@ -35,7 +43,9 @@
               {{ c.calificadorNombre }}
             </q-item-label>
             <q-item-label caption v-if="c.comentario">{{ c.comentario }}</q-item-label>
-            <q-item-label caption>{{ new Date(c.fechaCalificacion).toLocaleString() }}</q-item-label>
+            <q-item-label caption>{{
+              new Date(c.fechaCalificacion).toLocaleString()
+            }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -56,11 +66,25 @@
 
     <q-dialog v-model="dialogoAbierto">
       <q-card style="min-width: 350px">
-        <q-card-section class="text-h6">Calificar a {{ seleccionado?.contraparteNombre }}</q-card-section>
+        <q-card-section class="text-h6"
+          >Calificar a {{ seleccionado?.contraparteNombre }}</q-card-section
+        >
         <q-card-section>
           <q-rating v-model="form.puntuacion" size="2em" color="orange" :max="5" />
-          <q-input v-model="form.comentario" type="textarea" label="Comentario (opcional)" outlined class="q-mt-md" />
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-sm" rounded>{{ errorMessage }}</q-banner>
+          <q-input
+            v-model="form.comentario"
+            type="textarea"
+            label="Comentario (opcional)"
+            outlined
+            class="q-mt-md"
+          />
+          <q-banner
+            v-if="errorMessage"
+            dense
+            class="xchang-banner xchang-banner--error q-mt-sm"
+            rounded
+            >{{ errorMessage }}</q-banner
+          >
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup flat label="Cancelar" />
@@ -75,7 +99,12 @@
 import { onMounted, reactive, ref } from 'vue'
 import { Notify } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
-import { getPendientes, crearCalificacion, getCalificacionesUsuario, reportarCalificacion } from '@/services/calificaciones'
+import {
+  getPendientes,
+  crearCalificacion,
+  getCalificacionesUsuario,
+  reportarCalificacion,
+} from '@/services/calificaciones'
 
 const authStore = useAuthStore()
 const pendientes = ref([])

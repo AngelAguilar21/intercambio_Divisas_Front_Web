@@ -8,16 +8,26 @@
           <q-item-section>
             <q-item-label>
               {{ d.usuarioNombre }} vs {{ d.contraparteNombre || '—' }}
-              <q-badge :color="d.estado === 'Resuelta' ? 'positive' : 'orange'" class="q-ml-sm">{{ d.estado }}</q-badge>
+              <q-badge :color="d.estado === 'Resuelta' ? 'positive' : 'orange'" class="q-ml-sm">{{
+                d.estado
+              }}</q-badge>
             </q-item-label>
             <q-item-label caption>{{ d.motivo }}</q-item-label>
-            <q-item-label caption>Abierta: {{ new Date(d.fechaApertura).toLocaleString() }}</q-item-label>
+            <q-item-label caption
+              >Abierta: {{ new Date(d.fechaApertura).toLocaleString() }}</q-item-label
+            >
             <q-item-label v-if="d.resolucion" caption class="text-positive">
               Resolución ({{ d.criterioResolucion }}): {{ d.resolucion }}
             </q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn v-if="d.estado !== 'Resuelta'" color="primary" size="sm" label="Resolver" @click="abrirResolver(d)" />
+            <q-btn
+              v-if="d.estado !== 'Resuelta'"
+              color="primary"
+              size="sm"
+              label="Resolver"
+              @click="abrirResolver(d)"
+            />
           </q-item-section>
         </q-item>
       </q-list>
@@ -34,12 +44,29 @@
             outlined
             :options="['A favor del comprador', 'A favor del vendedor', 'Transacción nula']"
           />
-          <q-input v-model="form.resolucion" type="textarea" label="Detalle de la resolución" outlined class="q-mt-md" />
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-sm" rounded>{{ errorMessage }}</q-banner>
+          <q-input
+            v-model="form.resolucion"
+            type="textarea"
+            label="Detalle de la resolución"
+            outlined
+            class="q-mt-md"
+          />
+          <q-banner
+            v-if="errorMessage"
+            dense
+            class="xchang-banner xchang-banner--error q-mt-sm"
+            rounded
+            >{{ errorMessage }}</q-banner
+          >
         </q-card-section>
         <q-card-actions align="right">
           <q-btn v-close-popup flat label="Cancelar" />
-          <q-btn color="primary" label="Confirmar resolución" :loading="enviando" @click="onResolver" />
+          <q-btn
+            color="primary"
+            label="Confirmar resolución"
+            :loading="enviando"
+            @click="onResolver"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>

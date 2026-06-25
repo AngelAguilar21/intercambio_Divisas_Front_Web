@@ -11,7 +11,13 @@
           <q-input v-model="filtro.correoElectronico" label="Correo electrónico" outlined dense />
         </div>
         <div class="col-6 col-md-2">
-          <q-select v-model="filtro.estado" label="Estado" outlined dense :options="['Todos', 'Activo', 'Restringido']" />
+          <q-select
+            v-model="filtro.estado"
+            label="Estado"
+            outlined
+            dense
+            :options="['Todos', 'Activo', 'Restringido']"
+          />
         </div>
         <div class="col-6 col-md-2">
           <q-btn color="primary" label="Buscar" class="full-width" @click="cargar" />
@@ -23,7 +29,13 @@
       <q-table :rows="usuarios" :columns="columnas" row-key="usuarioId" :loading="cargando" flat>
         <template #body-cell-acciones="props">
           <q-td :props="props">
-            <q-btn flat dense size="sm" label="Ver detalle" @click="verDetalle(props.row.usuarioId)" />
+            <q-btn
+              flat
+              dense
+              size="sm"
+              label="Ver detalle"
+              @click="verDetalle(props.row.usuarioId)"
+            />
           </q-td>
         </template>
       </q-table>
@@ -45,7 +57,9 @@
             <q-item>
               <q-item-section>Estado</q-item-section>
               <q-item-section side>
-                <q-badge :color="detalle.estado === 'Activo' ? 'positive' : 'negative'">{{ detalle.estado }}</q-badge>
+                <q-badge :color="detalle.estado === 'Activo' ? 'positive' : 'negative'">{{
+                  detalle.estado
+                }}</q-badge>
               </q-item-section>
             </q-item>
           </q-list>
@@ -70,7 +84,13 @@
           </q-list>
 
           <q-input v-model="mensajeAccion" label="Motivo" outlined dense class="q-mt-md" />
-          <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9 q-mt-sm" rounded>{{ errorMessage }}</q-banner>
+          <q-banner
+            v-if="errorMessage"
+            dense
+            class="xchang-banner xchang-banner--error q-mt-sm"
+            rounded
+            >{{ errorMessage }}</q-banner
+          >
         </q-card-section>
 
         <q-card-actions align="right">
@@ -98,7 +118,12 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { Notify } from 'quasar'
-import { buscarUsuarios, obtenerDetalleUsuario, restringirUsuario, habilitarUsuario } from '@/services/adminUsuarios'
+import {
+  buscarUsuarios,
+  obtenerDetalleUsuario,
+  restringirUsuario,
+  habilitarUsuario,
+} from '@/services/adminUsuarios'
 
 const filtro = reactive({ nombreUsuario: '', correoElectronico: '', estado: 'Todos' })
 const usuarios = ref([])
@@ -148,7 +173,10 @@ async function onCambiarEstado(accion) {
   try {
     const fn = accion === 'restringir' ? restringirUsuario : habilitarUsuario
     await fn(detalle.value.usuarioId, mensajeAccion.value)
-    Notify.create({ type: 'positive', message: `Usuario ${accion === 'restringir' ? 'restringido' : 'habilitado'}.` })
+    Notify.create({
+      type: 'positive',
+      message: `Usuario ${accion === 'restringir' ? 'restringido' : 'habilitado'}.`,
+    })
     dialogoAbierto.value = false
     await cargar()
   } catch (error) {

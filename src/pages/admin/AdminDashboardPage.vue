@@ -6,25 +6,34 @@
     </div>
 
     <div class="row q-col-gutter-md q-mb-md">
-      <div v-for="m in metricas" :key="m.label" class="col-6 col-md-3">
+      <div
+        v-for="(m, i) in metricas"
+        :key="m.label"
+        class="col-6 col-md-3 xc-enter"
+        :style="{ '--xc-delay': `${i * 40}ms` }"
+      >
         <q-card flat bordered class="q-pa-md text-center">
-          <div class="text-h4">{{ m.valor }}</div>
+          <div class="text-h4 xc-figure">{{ m.valor }}</div>
           <div class="text-caption text-grey-7">{{ m.label }}</div>
         </q-card>
       </div>
     </div>
 
     <q-card flat bordered class="q-pa-md">
-      <div class="text-subtitle1 text-weight-medium q-mb-md">Volumen de operaciones (últimos 30 días)</div>
+      <div class="text-subtitle1 text-weight-medium q-mb-md">
+        Volumen de operaciones (últimos 30 días)
+      </div>
       <div class="row items-end" style="height: 160px; gap: 3px">
         <div
           v-for="v in dashboard?.volumenUltimos30Dias"
           :key="v.fecha"
-          class="bg-primary"
+          class="xc-volumen-barra"
           :style="{ width: '8px', height: barHeight(v.cantidadOperaciones) + 'px' }"
           :title="`${new Date(v.fecha).toLocaleDateString()}: ${v.cantidadOperaciones}`"
         />
-        <div v-if="!dashboard?.volumenUltimos30Dias?.length" class="text-grey-7">Sin operaciones registradas.</div>
+        <div v-if="!dashboard?.volumenUltimos30Dias?.length" class="text-grey-7">
+          Sin operaciones registradas.
+        </div>
       </div>
     </q-card>
   </q-page>
@@ -66,3 +75,10 @@ async function cargar() {
 
 onMounted(cargar)
 </script>
+
+<style scoped>
+.xc-volumen-barra {
+  background: var(--xchang-accent);
+  border-radius: 4px 4px 0 0;
+}
+</style>

@@ -8,14 +8,30 @@
           <div class="text-subtitle1 text-weight-medium q-mb-md">Editar datos</div>
 
           <q-form class="q-gutter-md" @submit.prevent="onSubmit">
-            <q-input v-model="form.nombreUsuario" name="nombreUsuario" label="Nombre de usuario" outlined />
+            <q-input
+              v-model="form.nombreUsuario"
+              name="nombreUsuario"
+              label="Nombre de usuario"
+              outlined
+            />
             <q-input v-model="form.telefono" name="telefono" label="Teléfono" outlined />
-            <q-input v-model="form.fotoUrl" name="fotoUrl" label="URL de foto de perfil" outlined hint="Opcional" />
+            <q-input
+              v-model="form.fotoUrl"
+              name="fotoUrl"
+              label="URL de foto de perfil"
+              outlined
+              hint="Opcional"
+            />
 
-            <q-banner v-if="errorMessage" dense class="bg-red-1 text-red-9" rounded>
+            <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>
               {{ errorMessage }}
             </q-banner>
-            <q-banner v-if="successMessage" dense class="bg-green-1 text-green-9" rounded>
+            <q-banner
+              v-if="successMessage"
+              dense
+              class="xchang-banner xchang-banner--success"
+              rounded
+            >
               {{ successMessage }}
             </q-banner>
 
@@ -34,17 +50,36 @@
             </q-item>
             <q-item>
               <q-item-section>Documento</q-item-section>
-              <q-item-section side>{{ perfil?.tipoDocumento }} {{ perfil?.numeroDocumento }}</q-item-section>
+              <q-item-section side
+                >{{ perfil?.tipoDocumento }} {{ perfil?.numeroDocumento }}</q-item-section
+              >
             </q-item>
             <q-item>
               <q-item-section>Calificación promedio</q-item-section>
               <q-item-section side>
-                {{ perfil?.calificacionPromedio != null ? perfil.calificacionPromedio.toFixed(1) + ' / 5' : 'Sin calificaciones' }}
+                <div
+                  v-if="perfil?.calificacionPromedio != null"
+                  class="row items-center q-gutter-xs"
+                >
+                  <q-icon
+                    v-for="n in 5"
+                    :key="n"
+                    :name="n <= Math.round(perfil.calificacionPromedio) ? 'star' : 'star_outline'"
+                    color="warning"
+                    size="16px"
+                  />
+                  <span class="xc-figure q-ml-xs">{{
+                    perfil.calificacionPromedio.toFixed(1)
+                  }}</span>
+                </div>
+                <span v-else>Sin calificaciones</span>
               </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>Transacciones completadas</q-item-section>
-              <q-item-section side>{{ perfil?.totalTransaccionesCompletadas }}</q-item-section>
+              <q-item-section side class="xc-figure">{{
+                perfil?.totalTransaccionesCompletadas
+              }}</q-item-section>
             </q-item>
           </q-list>
         </q-card>

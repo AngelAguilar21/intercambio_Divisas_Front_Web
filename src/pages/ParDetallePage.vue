@@ -24,9 +24,6 @@
       <div class="row items-center justify-between">
         <div>
           <div class="text-subtitle1 text-weight-medium">Gráfico histórico</div>
-          <div class="text-body2 text-grey-7">
-            Placeholder para US-011. Aquí se conectará la serie histórica del par.
-          </div>
         </div>
 
         <q-select
@@ -41,7 +38,13 @@
         />
       </div>
 
-      <div class="placeholder-chart q-mt-md">Gráfico pendiente</div>
+      <GraficoPar
+        class="q-mt-md"
+        :origen="monedaOrigen"
+        :destino="monedaDestino"
+        :rango="rango"
+        :auto-refresh="true"
+      />
     </q-card>
 
     <q-banner v-if="errorMessage" dense rounded class="xchang-banner xchang-banner--error q-mb-md">
@@ -589,6 +592,7 @@ import {
   getResumenOrden,
 } from '@/services/mercado'
 import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
+import GraficoPar from '@/components/graficos/GraficoPar.vue'
 import {
   getResumen as getResumenCompra,
   confirmar as confirmarCompra,
@@ -1299,17 +1303,6 @@ function formatearDecimal(valor) {
 </script>
 
 <style scoped>
-.placeholder-chart {
-  min-height: 220px;
-  border: 1px dashed var(--xchang-border);
-  border-radius: var(--xchang-radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--xchang-text-secondary);
-  background: var(--xchang-page-bg);
-}
-
 .resultado-pre {
   white-space: pre-wrap;
   max-height: 320px;

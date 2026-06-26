@@ -58,10 +58,12 @@
         </div>
 
         <div class="col-12 col-md-2">
-          <q-toggle
-            v-model="filtro.colapsarParesInversos"
-            label="Colapsar inversos"
-            @update:model-value="buscar"
+          <q-btn
+            :color="filtro.colapsarParesInversos ? 'primary' : undefined"
+            :outline="!filtro.colapsarParesInversos"
+            class="full-width"
+            label="Colapsar pares inversos"
+            @click="toggleColapsarInversos"
           />
         </div>
 
@@ -80,7 +82,7 @@
         :loading="cargando"
         flat
         binary-state-sort
-        :rows-per-page-options="[10, 20, 40, 100, 200, 400, 0]"
+        :rows-per-page-options="[]"
         @request="onRequest"
         @row-click="abrirDetalle"
       >
@@ -91,13 +93,13 @@
         </template>
 
         <template #body-cell-mayorPrecioCompra="props">
-          <q-td :props="props" class="text-right text-blue xc-figure">
+          <q-td :props="props" class="text-right xchang-buy-line xc-figure">
             {{ formatearDecimal(props.row.mayorPrecioCompra) }}
           </q-td>
         </template>
 
         <template #body-cell-menorPrecioVenta="props">
-          <q-td :props="props" class="text-right text-green xc-figure">
+          <q-td :props="props" class="text-right xchang-sell-line xc-figure">
             {{ formatearDecimal(props.row.menorPrecioVenta) }}
           </q-td>
         </template>
@@ -123,6 +125,42 @@
               @click.stop="abrirDetalle(null, props.row)"
             />
           </q-td>
+        </template>
+
+        <template #pagination="scope">
+          <div class="row items-center no-wrap q-gutter-xs">
+            <span class="text-caption q-mr-xs" style="color: var(--xchang-text-secondary)">
+              Registros por página:
+            </span>
+            <q-select
+              v-model="paginacion.rowsPerPage"
+              :options="opcionesRegistrosPorPagina"
+              dense
+              outlined
+              emit-value
+              map-options
+              style="width: 88px"
+              @update:model-value="buscar"
+            />
+
+            <q-btn flat dense label="<<" :disable="scope.isFirstPage" @click="scope.firstPage()">
+              <q-tooltip>Primera página</q-tooltip>
+            </q-btn>
+            <q-btn flat dense label="<" :disable="scope.isFirstPage" @click="scope.prevPage()">
+              <q-tooltip>Página anterior</q-tooltip>
+            </q-btn>
+
+            <span class="text-caption q-px-xs">
+              {{ scope.pagination.page }} / {{ scope.pagesNumber || 1 }}
+            </span>
+
+            <q-btn flat dense label=">" :disable="scope.isLastPage" @click="scope.nextPage()">
+              <q-tooltip>Página siguiente</q-tooltip>
+            </q-btn>
+            <q-btn flat dense label=">>" :disable="scope.isLastPage" @click="scope.lastPage()">
+              <q-tooltip>Última página</q-tooltip>
+            </q-btn>
+          </div>
         </template>
       </q-table>
     </q-card>
@@ -150,6 +188,16 @@ const criterioOptions = [
   { label: 'Mayor precio de compra', value: 'MayorPrecioCompra' },
   { label: 'Menor precio de venta', value: 'MenorPrecioVenta' },
   { label: 'Margen', value: 'Margen' },
+]
+
+const opcionesRegistrosPorPagina = [
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '40', value: 40 },
+  { label: '100', value: 100 },
+  { label: '200', value: 200 },
+  { label: '400', value: 400 },
+  { label: 'Todos', value: 0 },
 ]
 
 const filtro = reactive({
@@ -231,6 +279,11 @@ async function cargarMonedas() {
 
 function alternarDireccion() {
   filtro.direccion = filtro.direccion === 'desc' ? 'asc' : 'desc'
+  buscar()
+}
+
+function toggleColapsarInversos() {
+  filtro.colapsarParesInversos = !filtro.colapsarParesInversos
   buscar()
 }
 

@@ -5,6 +5,7 @@
     <q-page-container>
       <q-page>
         <LandingHero />
+        <LandingGraficoPar />
         <LandingBeneficios />
         <LandingComoFunciona />
         <LandingEstadisticas />
@@ -19,6 +20,7 @@
 <script setup>
 import LandingHeader from '@/components/landing/LandingHeader.vue'
 import LandingHero from '@/components/landing/LandingHero.vue'
+import LandingGraficoPar from '@/components/landing/LandingGraficoPar.vue'
 import LandingBeneficios from '@/components/landing/LandingBeneficios.vue'
 import LandingComoFunciona from '@/components/landing/LandingComoFunciona.vue'
 import LandingEstadisticas from '@/components/landing/LandingEstadisticas.vue'

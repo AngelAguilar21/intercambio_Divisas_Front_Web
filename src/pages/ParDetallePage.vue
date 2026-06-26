@@ -57,40 +57,48 @@
 
       <!-- Columna izquierda: Generar orden de compra (US-013) + Venta inmediata (US-016) -->
       <div class="col-12 col-lg-4">
-        <GenerarOrdenCompraStub
+        <GenerarOrdenCompra
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          :precio-inicial-compra="precioInicialCompra"
           class="q-mb-md"
+          @operacion-completada="onOperacionCompletada"
         />
-        <VentaInmediataStub
+        <VentaInmediata
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          @operacion-completada="onOperacionCompletada"
         />
       </div>
 
       <!-- Columna central: Libro de órdenes (US-012) -->
       <div class="col-12 col-lg-4">
-        <LibroOrdenesStub
+        <LibroOrdenes
+          ref="libroRef"
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          @libro-cargado="onLibroCargado"
         />
       </div>
 
       <!-- Columna derecha: Generar oferta de venta (US-014) + Compra inmediata (US-015) -->
       <div class="col-12 col-lg-4">
-        <GenerarOfertaVentaStub
+        <GenerarOfertaVenta
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          :precio-inicial-venta="precioInicialVenta"
           class="q-mb-md"
+          @operacion-completada="onOperacionCompletada"
         />
-        <CompraInmediataStub
+        <CompraInmediata
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          @operacion-completada="onOperacionCompletada"
         />
       </div>
 
@@ -105,11 +113,11 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
 import GraficoPar from '@/components/graficos/GraficoPar.vue'
-import LibroOrdenesStub from '@/components/trading/LibroOrdenesStub.vue'
-import GenerarOrdenCompraStub from '@/components/trading/GenerarOrdenCompraStub.vue'
-import GenerarOfertaVentaStub from '@/components/trading/GenerarOfertaVentaStub.vue'
-import CompraInmediataStub from '@/components/trading/CompraInmediataStub.vue'
-import VentaInmediataStub from '@/components/trading/VentaInmediataStub.vue'
+import LibroOrdenes from '@/components/trading/LibroOrdenes.vue'
+import GenerarOrdenCompra from '@/components/trading/GenerarOrdenCompra.vue'
+import GenerarOfertaVenta from '@/components/trading/GenerarOfertaVenta.vue'
+import CompraInmediata from '@/components/trading/CompraInmediata.vue'
+import VentaInmediata from '@/components/trading/VentaInmediata.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -119,6 +127,11 @@ const monedaOrigen = computed(() => String(route.query.origen || '').toUpperCase
 const monedaDestino = computed(() => String(route.query.destino || '').toUpperCase())
 
 const rango = ref('UltimoDia')
+const libroRef = ref(null)
+
+// Precios del libro para inicializar US-013 y US-014
+const precioInicialCompra = ref(null)
+const precioInicialVenta = ref(null)
 
 const rangoOptions = [
   { label: 'Último día', value: 'UltimoDia' },
@@ -127,4 +140,18 @@ const rangoOptions = [
   { label: 'Último año', value: 'UltimoAno' },
   { label: 'Tiempo total', value: 'Total' },
 ]
+
+// Cuando el libro se carga, extrae los precios iniciales para US-013 y US-014
+function onLibroCargado(libro) {
+  if (!libro) return
+  const ordenes = libro.ordenesCompra ?? []
+  const ofertas = libro.ofertasVenta ?? []
+  precioInicialCompra.value = ordenes.length ? Number(ordenes[0].precioUnitario) : null
+  precioInicialVenta.value = ofertas.length ? Number(ofertas[0].precioUnitario) : null
+}
+
+// Cuando cualquier operación se completa, refresca el libro
+function onOperacionCompletada() {
+  libroRef.value?.cargar?.()
+}
 </script>

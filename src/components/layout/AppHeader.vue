@@ -8,6 +8,8 @@
         X-Chang
       </q-toolbar-title>
 
+      <WalletBar v-if="authStore.isAuthenticated" class="q-mr-sm" />
+
       <q-btn
         v-if="authStore.isAuthenticated"
         flat
@@ -116,6 +118,7 @@ import { onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificacionesStore } from '@/stores/notificaciones'
+import WalletBar from '@/components/layout/WalletBar.vue'
 
 defineEmits(['toggle-drawer'])
 

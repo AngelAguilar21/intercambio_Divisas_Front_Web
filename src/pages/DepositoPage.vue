@@ -19,7 +19,11 @@
             :options="monedaOptions"
             emit-value
             map-options
+            @update:model-value="touched.monedaId = true"
           />
+          <div v-if="touched.monedaId && !form.monedaId" class="text-caption text-negative q-mt-xs">
+            Seleccione una moneda
+          </div>
         </div>
         <div class="col-12 col-md-3">
           <q-select
@@ -29,16 +33,30 @@
             :options="metodoOptions"
             emit-value
             map-options
+            @update:model-value="touched.metodoPagoId = true"
           />
+          <div v-if="touched.metodoPagoId && !form.metodoPagoId" class="text-caption text-negative q-mt-xs">
+            Seleccione un método de pago
+          </div>
         </div>
         <div class="col-12 col-md-3">
-          <q-input v-model.number="form.monto" type="number" label="Monto a depositar" outlined />
+          <q-input
+            v-model.number="form.monto"
+            type="number"
+            label="Monto a depositar"
+            outlined
+            @update:model-value="touched.monto = true"
+          />
+          <div v-if="touched.monto && montoError" class="text-caption text-negative q-mt-xs">
+            {{ montoError }}
+          </div>
         </div>
         <div class="col-12 col-md-3">
           <q-btn
             color="primary"
             label="Calcular"
             class="full-width"
+            :disable="!isFormValid"
             :loading="calculando"
             @click="onCalcular"
           />
@@ -83,75 +101,46 @@
         @click="onConfirmar"
       />
     </q-card>
-
-    <q-card v-if="resultado" flat bordered class="q-pa-md xchang-banner--success">
-      <div class="text-subtitle1 text-weight-medium q-mb-sm">Depósito registrado</div>
-      <q-list dense>
-        <q-item>
-          <q-item-section>Nuevo saldo</q-item-section>
-          <q-item-section side>{{ resultado.nuevoSaldo }} {{ resultado.codigoISO }}</q-item-section>
-        </q-item>
-      </q-list>
-      <q-banner dense class="xchang-banner xchang-banner--info q-mt-sm" rounded>
-        Se enviará un correo de confirmación con el voucher a tu correo electrónico registrado.
-      </q-banner>
-
-      <div class="q-mt-md">
-        <div class="text-caption q-mb-xs" style="color: var(--xchang-text-secondary)">
-          Comprobante de pago (JPG, PNG o PDF, máx. 5 MB)
-        </div>
-        <q-file
-          v-model="archivoVoucher"
-          outlined
-          dense
-          accept=".jpg,.jpeg,.png,.pdf"
-          style="max-width: 400px"
-        >
-          <template #append>
-            <q-icon name="attach_file" />
-          </template>
-        </q-file>
-        <q-btn
-          class="q-mt-sm"
-          color="secondary"
-          label="Subir comprobante"
-          :loading="subiendoVoucher"
-          :disable="!archivoVoucher"
-          @click="onSubirVoucher"
-        />
-        <q-banner v-if="voucherUrl" dense class="xchang-banner xchang-banner--info q-mt-sm" rounded>
-          Comprobante subido:
-          <a :href="assetUrl(voucherUrl)" target="_blank" rel="noopener">ver archivo</a>
-        </q-banner>
-      </div>
-
-      <q-btn flat color="primary" class="q-mt-md" label="Nuevo depósito" @click="reiniciar" />
-    </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 import { getMonedas } from '@/services/monedas'
-import { getMetodosPago, calcular, registrar, subirVoucher } from '@/services/deposito'
+import { getMetodosPago, calcular, registrar } from '@/services/deposito'
+import { useBilleteraStore } from '@/stores/billetera'
+
+const route = useRoute()
+const router = useRouter()
+const $q = useQuasar()
+const billeteraStore = useBilleteraStore()
 
 const monedaOptions = ref([])
 const metodoOptions = ref([])
 const form = reactive({ monedaId: null, metodoPagoId: null, monto: null })
+const touched = reactive({ monedaId: false, metodoPagoId: false, monto: false })
 
 const calculando = ref(false)
 const confirmando = ref(false)
-const subiendoVoucher = ref(false)
 const errorMessage = ref('')
 
 const resumen = ref(null)
-const resultado = ref(null)
-const archivoVoucher = ref(null)
-const voucherUrl = ref('')
 
-function assetUrl(path) {
-  return `${import.meta.env.ASSET_BASE_URL}${path}`
-}
+const montoError = computed(() => {
+  const m = form.monto
+  if (m === null || m === undefined || m === '' || isNaN(m)) return null
+  if (m <= 0) return 'El monto debe ser mayor a 0'
+  if (m > 1_000_000) return 'Monto máximo excedido'
+  return null
+})
+
+const isFormValid = computed(() => {
+  const m = form.monto
+  const validMonto = m !== null && m !== undefined && m !== '' && !isNaN(m)
+  return !!form.monedaId && !!form.metodoPagoId && validMonto && !montoError.value
+})
 
 onMounted(async () => {
   const [{ data: monedas }, { data: metodos }] = await Promise.all([getMonedas(), getMetodosPago()])
@@ -160,12 +149,20 @@ onMounted(async () => {
     value: m.monedaId,
   }))
   metodoOptions.value = metodos.map((m) => ({ label: m.nombre, value: m.metodoPagoId }))
+
+  const monedaQuery = Number(route.query.monedaId)
+  if (monedaQuery && monedaOptions.value.some((o) => o.value === monedaQuery)) {
+    form.monedaId = monedaQuery
+  }
 })
 
 async function onCalcular() {
+  touched.monedaId = true
+  touched.metodoPagoId = true
+  touched.monto = true
+  if (!isFormValid.value) return
   errorMessage.value = ''
   resumen.value = null
-  resultado.value = null
   calculando.value = true
   try {
     const { data } = await calcular(form)
@@ -181,33 +178,17 @@ async function onConfirmar() {
   confirmando.value = true
   errorMessage.value = ''
   try {
-    const { data } = await registrar(form)
-    resultado.value = data
-    voucherUrl.value = ''
+    await registrar(form)
+    await billeteraStore.refrescar()
+    $q.notify({
+      type: 'positive',
+      message: 'Depósito realizado. Se enviará el voucher a tu correo electrónico.',
+    })
+    router.push({ name: 'billetera' })
   } catch (error) {
     errorMessage.value = error.response?.data?.mensaje || 'No se pudo registrar el depósito.'
   } finally {
     confirmando.value = false
   }
-}
-
-async function onSubirVoucher() {
-  subiendoVoucher.value = true
-  try {
-    const { data } = await subirVoucher(resultado.value.depositoId, archivoVoucher.value)
-    voucherUrl.value = data.voucherUrl
-  } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo subir el comprobante.'
-  } finally {
-    subiendoVoucher.value = false
-  }
-}
-
-function reiniciar() {
-  resumen.value = null
-  resultado.value = null
-  archivoVoucher.value = null
-  voucherUrl.value = ''
-  form.monto = null
 }
 </script>

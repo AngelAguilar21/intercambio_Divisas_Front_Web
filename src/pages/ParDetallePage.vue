@@ -111,6 +111,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useBilleteraStore } from '@/stores/billetera'
 import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
 import GraficoPar from '@/components/graficos/GraficoPar.vue'
 import LibroOrdenes from '@/components/trading/LibroOrdenes.vue'
@@ -121,6 +122,7 @@ import VentaInmediata from '@/components/trading/VentaInmediata.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const billeteraStore = useBilleteraStore()
 
 const parMonedaId = computed(() => Number(route.params.parMonedaId))
 const monedaOrigen = computed(() => String(route.query.origen || '').toUpperCase())
@@ -150,8 +152,9 @@ function onLibroCargado(libro) {
   precioInicialVenta.value = ofertas.length ? Number(ofertas[0].precioUnitario) : null
 }
 
-// Cuando cualquier operación se completa, refresca el libro
+// Cuando cualquier operación se completa, refresca el libro y la billetera
 function onOperacionCompletada() {
   libroRef.value?.cargar?.()
+  billeteraStore.refrescar()
 }
 </script>

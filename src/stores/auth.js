@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { Dark } from 'quasar'
 import * as authService from '@/services/auth'
 import * as configuracionService from '@/services/configuracion'
+import { useBilleteraStore } from '@/stores/billetera'
 
 const TOKEN_KEY = 'xchang_token'
 const USER_KEY = 'xchang_user'
@@ -96,6 +97,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem(USER_KEY)
 
       this.applyTheme(localStorage.getItem(THEME_KEY) || 'Claro')
+      useBilleteraStore().limpiar()
     },
 
     async fetchProfile() {

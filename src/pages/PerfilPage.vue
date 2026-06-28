@@ -99,11 +99,15 @@ const errorMessage = ref('')
 const successMessage = ref('')
 
 async function cargarPerfil() {
-  const { data } = await getPerfil()
-  perfil.value = data
-  form.nombreUsuario = data.nombreUsuario
-  form.telefono = data.telefono || ''
-  form.fotoUrl = data.fotoUrl || ''
+  try {
+    const { data } = await getPerfil()
+    perfil.value = data
+    form.nombreUsuario = data.nombreUsuario
+    form.telefono = data.telefono || ''
+    form.fotoUrl = data.fotoUrl || ''
+  } catch (error) {
+    errorMessage.value = error.response?.data?.mensaje || 'No se pudo cargar el perfil.'
+  }
 }
 
 onMounted(cargarPerfil)

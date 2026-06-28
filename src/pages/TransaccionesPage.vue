@@ -249,6 +249,9 @@ import { getOfertas } from '@/services/ofertas'
 import CancelarDialog from '@/components/mercado/CancelarDialog.vue'
 import ParMonedaChip from '@/components/common/ParMonedaChip.vue'
 import EstadoBadge from '@/components/common/EstadoBadge.vue'
+import { useBilleteraStore } from '@/stores/billetera'
+
+const billeteraStore = useBilleteraStore()
 
 const filtros = reactive({
   desde: '',
@@ -482,5 +485,6 @@ function onCancelado() {
   cancelacion.tipoOperacion = ''
   cancelacion.referenciaId = null
   cargar()
+  billeteraStore.refrescar()
 }
 </script>

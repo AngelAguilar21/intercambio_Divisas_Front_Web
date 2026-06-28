@@ -1,14 +1,37 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Gestión de usuarios</div>
+    <div class="row items-center q-mb-md">
+      <div class="text-h5 col">Gestión de usuarios</div>
+      <q-btn
+        flat
+        dense
+        icon="fact_check"
+        label="Ver log de auditoría"
+        :to="{ name: 'admin-auditoria' }"
+      />
+    </div>
 
     <q-card flat bordered class="q-pa-md q-mb-md">
       <div class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-4">
-          <q-input v-model="filtro.nombreUsuario" label="Nombre de usuario" outlined dense />
+          <q-input
+            v-model="filtro.nombreUsuario"
+            label="Nombre de usuario"
+            outlined
+            dense
+            :error="!!errorNombreUsuario"
+            :error-message="errorNombreUsuario"
+          />
         </div>
         <div class="col-12 col-md-4">
-          <q-input v-model="filtro.correoElectronico" label="Correo electrónico" outlined dense />
+          <q-input
+            v-model="filtro.correoElectronico"
+            label="Correo electrónico"
+            outlined
+            dense
+            :error="!!errorCorreo"
+            :error-message="errorCorreo"
+          />
         </div>
         <div class="col-6 col-md-2">
           <q-select
@@ -20,7 +43,7 @@
           />
         </div>
         <div class="col-6 col-md-2">
-          <q-btn color="primary" label="Buscar" class="full-width" @click="cargar" />
+          <q-btn color="primary" label="Buscar" class="full-width" :disable="!filtroValido" @click="cargar" />
         </div>
       </div>
     </q-card>
@@ -83,7 +106,16 @@
             </q-item>
           </q-list>
 
-          <q-input v-model="mensajeAccion" label="Motivo" outlined dense class="q-mt-md" />
+          <q-input
+            v-model="mensajeAccion"
+            :label="detalle?.estado === 'Activo' ? 'Mensaje de restricción' : 'Mensaje de habilitación'"
+            outlined
+            dense
+            class="q-mt-md"
+            :error="mensajeTocado && !!errorMensaje"
+            :error-message="errorMensaje"
+            @update:model-value="mensajeTocado = true"
+          />
           <q-banner
             v-if="errorMessage"
             dense
@@ -99,6 +131,7 @@
             v-if="detalle?.estado === 'Activo'"
             color="negative"
             label="Restringir"
+            :disable="!!errorMensaje"
             :loading="procesando"
             @click="onCambiarEstado('restringir')"
           />
@@ -106,6 +139,7 @@
             v-else
             color="positive"
             label="Habilitar"
+            :disable="!!errorMensaje"
             :loading="procesando"
             @click="onCambiarEstado('habilitar')"
           />
@@ -116,7 +150,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { Notify } from 'quasar'
 import {
   buscarUsuarios,
@@ -129,6 +163,14 @@ const filtro = reactive({ nombreUsuario: '', correoElectronico: '', estado: 'Tod
 const usuarios = ref([])
 const cargando = ref(false)
 
+const errorNombreUsuario = computed(() =>
+  filtro.nombreUsuario.length > 30 ? 'Máximo 30 caracteres' : '',
+)
+const errorCorreo = computed(() =>
+  filtro.correoElectronico.length > 100 ? 'Máximo 100 caracteres' : '',
+)
+const filtroValido = computed(() => !errorNombreUsuario.value && !errorCorreo.value)
+
 const columnas = [
   { name: 'nombreUsuario', label: 'Usuario', field: 'nombreUsuario', align: 'left' },
   { name: 'correoElectronico', label: 'Correo', field: 'correoElectronico', align: 'left' },
@@ -140,10 +182,18 @@ const columnas = [
 const dialogoAbierto = ref(false)
 const detalle = ref(null)
 const mensajeAccion = ref('')
+const mensajeTocado = ref(false)
 const procesando = ref(false)
 const errorMessage = ref('')
 
+const errorMensaje = computed(() => {
+  if (!mensajeAccion.value) return 'Ingrese un mensaje'
+  if (mensajeAccion.value.length > 300) return 'Máximo 300 caracteres'
+  return ''
+})
+
 async function cargar() {
+  if (!filtroValido.value) return
   cargando.value = true
   try {
     const { data } = await buscarUsuarios(filtro)
@@ -159,15 +209,14 @@ async function verDetalle(usuarioId) {
   const { data } = await obtenerDetalleUsuario(usuarioId)
   detalle.value = data
   mensajeAccion.value = ''
+  mensajeTocado.value = false
   errorMessage.value = ''
   dialogoAbierto.value = true
 }
 
 async function onCambiarEstado(accion) {
-  if (!mensajeAccion.value) {
-    errorMessage.value = 'Debes indicar un motivo.'
-    return
-  }
+  mensajeTocado.value = true
+  if (errorMensaje.value) return
   procesando.value = true
   errorMessage.value = ''
   try {

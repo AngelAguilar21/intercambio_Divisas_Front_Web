@@ -125,14 +125,17 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { getMonedas } from '@/services/monedas'
 import { getBilletera } from '@/services/billetera'
 import { getMetodosCobro, calcular, registrar } from '@/services/retiro'
+import { useBilleteraStore } from '@/stores/billetera'
 
+const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+const billeteraStore = useBilleteraStore()
 
 const monedaOptions = ref([])
 const metodoOptions = ref([])
@@ -188,6 +191,11 @@ onMounted(async () => {
   monedaOptions.value = monedas.map((m) => ({ label: `${m.codigoISO} - ${m.nombre}`, value: m.monedaId }))
   metodoOptions.value = metodos.map((m) => ({ label: m.nombre, value: m.metodoPagoId }))
   saldos.value = billetera.saldos || []
+
+  const monedaQuery = Number(route.query.monedaId)
+  if (monedaQuery && monedaOptions.value.some((o) => o.value === monedaQuery)) {
+    form.monedaId = monedaQuery
+  }
 })
 
 async function onConfirmarRetiro() {
@@ -214,6 +222,7 @@ async function onConfirmar() {
   errorDialog.value = ''
   try {
     await registrar(form)
+    await billeteraStore.refrescar()
     showDialog.value = false
     $q.notify({ type: 'positive', message: 'Retiro realizado. Se enviará el comprobante a tu correo electrónico.' })
     router.push({ name: 'billetera' })

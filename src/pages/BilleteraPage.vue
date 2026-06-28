@@ -17,7 +17,7 @@
     </div>
 
     <q-banner v-else-if="saldos.length === 0" dense class="xchang-banner xchang-banner--empty">
-      Aún no tienes saldos registrados en tu billetera.
+      No existen fondos disponibles
     </q-banner>
 
     <div v-else class="row q-col-gutter-md">
@@ -54,14 +54,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { getBilletera } from '@/services/billetera'
+import { computed, onMounted } from 'vue'
+import { useBilleteraStore } from '@/stores/billetera'
 import { urlBandera } from '@/utils/monedaBandera'
 
-const billetera = ref(null)
-const cargando = ref(false)
+const billeteraStore = useBilleteraStore()
 
-const saldos = computed(() => billetera.value?.saldos || [])
+const cargando = computed(() => billeteraStore.cargando && !billeteraStore.cargado)
+const saldos = computed(() => billeteraStore.saldos.filter((s) => s.saldoDisponible > 0))
 
 function formatearSaldo(valor) {
   return Number(valor).toLocaleString('es-PE', {
@@ -70,14 +70,8 @@ function formatearSaldo(valor) {
   })
 }
 
-onMounted(async () => {
-  cargando.value = true
-  try {
-    const { data } = await getBilletera()
-    billetera.value = data
-  } finally {
-    cargando.value = false
-  }
+onMounted(() => {
+  if (!billeteraStore.cargado) billeteraStore.cargar()
 })
 </script>
 

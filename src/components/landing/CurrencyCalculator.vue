@@ -120,7 +120,7 @@
       <div class="xc-calc-info-row">
         <span>Tasa de cambio</span>
         <span class="xc-figure">
-          {{ cargandoTasa ? 'Calculando…' : tasa ? `1 ${monedaEnvia} = ${formatearMonto(tasa, 4)} ${monedaRecibe}` : 'Sin datos para este par' }}
+          {{ cargandoTasa ? 'Calculando…' : tasa ? `1 ${monedaEnvia} = ${formatearMonto(tasaEsInvertida ? tasa : 1 / tasa, 4)} ${monedaRecibe}` : 'Sin datos para este par' }}
         </span>
       </div>
       <div class="xc-calc-info-row">
@@ -161,6 +161,7 @@ const monedaRecibe = ref('PEN')
 const montoEnvia = ref(1000)
 
 const tasa = ref(null)
+const tasaEsInvertida = ref(false) // true cuando monedaEnvia es la moneda "destino" del par canónico
 const cargandoTasa = ref(false)
 const errorTasa = ref(false)
 
@@ -175,7 +176,8 @@ const opcionesMoneda = computed(() =>
 
 const subtotalRecibe = computed(() => {
   if (!tasa.value) return 0
-  return (Number(montoEnvia.value) || 0) * tasa.value
+  const monto = Number(montoEnvia.value) || 0
+  return tasaEsInvertida.value ? monto * tasa.value : monto / tasa.value
 })
 
 const comision = computed(() => subtotalRecibe.value * comisionPct.value)
@@ -204,8 +206,11 @@ async function cargarMonedas() {
 }
 
 async function cargarTasa() {
+  console.log('[Calc] cargarTasa iniciado', monedaEnvia.value, monedaRecibe.value)
+
   if (monedaEnvia.value === monedaRecibe.value) {
     tasa.value = 1
+    tasaEsInvertida.value = false
     errorTasa.value = false
     return
   }
@@ -214,18 +219,44 @@ async function cargarTasa() {
   errorTasa.value = false
 
   try {
-    const { data } = await getListadoPares({
+    // Intentar consulta directa primero
+    console.log('[Calc] llamando getListadoPares directo:', monedaEnvia.value, '→', monedaRecibe.value)
+    let { data } = await getListadoPares({
       monedaEntrega: monedaEnvia.value,
       monedaObtiene: monedaRecibe.value,
-      criterio: 'MayorPrecioCompra',
-      direccion: 'desc',
       pagina: 1,
       registrosPorPagina: '1',
     })
+    console.log('[Calc] respuesta directa:', data)
 
-    const fila = data.registros?.[0]
-    tasa.value = fila ? Number(fila.mayorPrecioCompra) : null
-  } catch {
+    let fila = data.registros?.[0]
+    // fueDirecto=true → el par se encontró con monedaEntrega=monedaEnvia
+    //   → tasa = "monedaEnvia por 1 monedaRecibe" → hay que DIVIDIR
+    //   Ej: monedaEnvia=PEN, tasa=3.8 → "3.8 PEN por 1 USD" → recibe = monto/3.8
+    // fueDirecto=false → se encontró con monedas invertidas (fallback)
+    //   → tasa = "monedaRecibe por 1 monedaEnvia" → hay que MULTIPLICAR
+    //   Ej: monedaEnvia=USD, tasa=3.8 → "3.8 PEN por 1 USD" → recibe = monto*3.8
+    let fueDirecto = true
+
+    if (!fila || !fila.menorPrecioVenta) {
+      console.log('[Calc] sin resultado directo, intentando fallback invertido:', monedaRecibe.value, '→', monedaEnvia.value)
+      const resp2 = await getListadoPares({
+        monedaEntrega: monedaRecibe.value,
+        monedaObtiene: monedaEnvia.value,
+        pagina: 1,
+        registrosPorPagina: '1',
+      })
+      console.log('[Calc] respuesta fallback:', resp2.data)
+      fila = resp2.data.registros?.[0]
+      if (fila) fueDirecto = false
+    }
+
+    console.log('[Calc] fila:', fila, '| fueDirecto:', fueDirecto, '| tasaEsInvertida:', !fueDirecto)
+    tasa.value = fila ? Number(fila.menorPrecioVenta) : null
+    tasaEsInvertida.value = !fueDirecto
+    console.log('[Calc] tasa final:', tasa.value, '| tasaEsInvertida:', tasaEsInvertida.value)
+  } catch (e) {
+    console.error('[Calc] error en cargarTasa:', e)
     tasa.value = null
     errorTasa.value = true
   } finally {

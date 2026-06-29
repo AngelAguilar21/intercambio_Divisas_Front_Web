@@ -1,6 +1,13 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Configuración</div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="settings" size="14px" />
+        Ajustes
+      </span>
+      <h1 class="xc-section-title">Configuración</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+    </div>
 
     <q-card flat bordered class="q-pa-md">
       <div class="text-subtitle1 text-weight-medium q-mb-sm">Tema visual</div>

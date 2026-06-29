@@ -1,11 +1,13 @@
 <template>
   <q-header class="xchang-header">
-    <q-toolbar>
-      <q-btn flat dense round icon="menu" aria-label="Menu" @click="$emit('toggle-drawer')" />
+    <q-toolbar class="xchang-toolbar">
+      <q-btn flat dense round icon="menu" color="white" aria-label="Menu" @click="$emit('toggle-drawer')" />
 
-      <q-toolbar-title class="row items-center no-wrap text-weight-bold">
-        <q-icon name="currency_exchange" color="primary" class="q-mr-sm" />
-        X-Chang
+      <q-toolbar-title class="row items-center no-wrap q-ml-xs">
+        <div class="xchang-logo-badge q-mr-sm">
+          <q-icon name="currency_exchange" size="18px" color="white" />
+        </div>
+        <span class="xchang-logo-text">X-Chang</span>
       </q-toolbar-title>
 
       <WalletBar v-if="authStore.isAuthenticated" class="q-mr-sm" />
@@ -16,6 +18,7 @@
         round
         dense
         icon="notifications"
+        color="white"
         @click="onAbrirNotificaciones"
       >
         <q-badge v-if="notifStore.noLeidas > 0" color="red" floating>{{
@@ -60,7 +63,7 @@
         </q-menu>
       </q-btn>
 
-      <q-btn v-if="authStore.isAuthenticated" flat round dense icon="account_circle">
+      <q-btn v-if="authStore.isAuthenticated" flat round dense icon="account_circle" color="white">
         <q-menu anchor="bottom right" self="top right">
           <q-list style="min-width: 220px">
             <q-item>
@@ -99,13 +102,20 @@
       </q-btn>
 
       <template v-else>
-        <q-btn flat dense color="primary" label="Iniciar sesión" :to="{ name: 'login' }" />
+        <q-btn
+          flat
+          dense
+          no-caps
+          class="xchang-btn-ghost q-mr-xs"
+          label="Iniciar sesión"
+          :to="{ name: 'login' }"
+        />
         <q-btn
           unelevated
           dense
-          color="primary"
+          no-caps
+          class="xchang-btn-cta q-px-md q-ml-sm"
           label="Registrarse"
-          class="q-px-md q-ml-sm"
           :to="{ name: 'register' }"
         />
       </template>
@@ -169,8 +179,59 @@ async function onLogout() {
 
 <style scoped>
 .xchang-header {
-  background: var(--xchang-surface);
-  color: var(--xchang-page-text);
-  box-shadow: var(--xchang-shadow-sm);
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a306e 55%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 24px rgba(15, 23, 42, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.xchang-toolbar {
+  min-height: 64px;
+}
+
+.xchang-logo-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.xchang-logo-text {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.xchang-btn-ghost {
+  color: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 100px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  padding: 0 14px !important;
+  transition: background 0.2s;
+}
+
+.xchang-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+.xchang-btn-cta {
+  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 100%) !important;
+  color: #0d1b3e !important;
+  font-weight: 800 !important;
+  border-radius: 100px !important;
+  box-shadow: 0 4px 14px rgba(96, 165, 250, 0.35);
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.xchang-btn-cta:hover {
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.5);
+  transform: translateY(-1px);
 }
 </style>

@@ -11,7 +11,7 @@
     </q-header>
 
     <q-page-container>
-      <q-page class="flex flex-center q-pa-md">
+      <q-page class="flex flex-center q-pa-md" style="min-height: inherit">
         <div class="auth-card">
           <router-view />
         </div>

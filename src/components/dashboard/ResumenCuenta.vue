@@ -145,25 +145,31 @@ async function cargarTasa() {
 .xc-res-card {
   padding: 22px;
   height: 100%;
+  border-radius: var(--xchang-radius-lg) !important;
+  box-shadow: var(--xchang-shadow-md) !important;
 }
 
 .xc-res-label {
-  font-size: 0.78rem;
+  font-size: 0.70rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   color: var(--xchang-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .xc-res-saldo-principal {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 800;
   color: var(--xchang-page-text);
-  margin-top: 10px;
+  margin-top: 12px;
+  letter-spacing: -0.02em;
 }
 
 .xc-res-saldo-moneda {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--xchang-text-secondary);
   margin-left: 6px;
@@ -177,7 +183,7 @@ async function cargarTasa() {
 }
 
 .xc-res-chip {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   background: var(--xchang-page-bg);
   border: 1px solid var(--xchang-border-light);
@@ -188,24 +194,26 @@ async function cargarTasa() {
 
 .xc-res-tasa-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
-  margin-top: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .xc-res-tasa {
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 800;
   color: var(--xchang-page-text);
+  letter-spacing: -0.02em;
 }
 
 .xc-res-variacion {
   display: flex;
   align-items: center;
   gap: 2px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 100px;
 }
 
@@ -222,12 +230,13 @@ async function cargarTasa() {
 .xc-res-variacion--neutro {
   color: var(--xchang-text-secondary);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  background: var(--xchang-page-bg);
 }
 
 .xc-res-tasa-caption {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--xchang-text-secondary);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 </style>

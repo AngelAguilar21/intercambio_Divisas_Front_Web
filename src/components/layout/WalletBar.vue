@@ -100,24 +100,35 @@ onMounted(() => {
 }
 
 .xc-wallet-bar-empty {
-  font-size: 0.8rem;
-  color: var(--xchang-text-secondary);
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
   white-space: nowrap;
   padding: 0 8px;
 }
 
 .xc-wallet-chip {
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 8px !important;
+  transition: background 0.15s;
+}
+
+.xc-wallet-chip:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
 }
 
 .xc-wallet-chip-code {
-  margin-right: 6px;
-  opacity: 0.75;
+  margin-right: 5px;
+  opacity: 0.65;
+  font-size: 0.70rem;
 }
 
 .xc-wallet-toggle {
   flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 </style>

@@ -224,8 +224,14 @@ async function cargarSerie() {
 
   try {
     const { data } = await getSerieHistorica(props.origen, props.destino, props.rango)
-    // Campo real del backend: SerieHistoricaParResponseDto.Serie
-    serie.value = data.serie ?? data.puntos ?? data.datos ?? (Array.isArray(data) ? data : [])
+    serie.value =
+      data.serie ??
+      data.puntos ??
+      data.datos ??
+      data.registros ??
+      data.historial ??
+      data.precios ??
+      (Array.isArray(data) ? data : [])
 
     if (serie.value.length > 0) {
       puntoActual.value = serie.value.at(-1)

@@ -30,23 +30,61 @@
             <div class="row q-col-gutter-xs">
               <div class="col-6">
                 <q-input
-                  v-model="cols[colCfg.key].fechaDesde"
-                  type="date"
+                  :model-value="fmtFechaInput(cols[colCfg.key].fechaDesde)"
                   label="Fecha desde"
                   outlined
                   dense
-                  @update:model-value="onFechaChange(colCfg.key)"
-                />
+                  readonly
+                  clearable
+                  @clear="onClearFecha(colCfg.key, 'fechaDesde')"
+                >
+                  <template #append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          :model-value="cols[colCfg.key].fechaDesde"
+                          mask="YYYY-MM-DD"
+                          minimal
+                          today-btn
+                          @update:model-value="(v) => onPickerFecha(colCfg.key, 'fechaDesde', v)"
+                        >
+                          <div class="row items-center justify-end q-pa-xs">
+                            <q-btn v-close-popup label="Cerrar" color="primary" flat dense size="sm" />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
               <div class="col-6">
                 <q-input
-                  v-model="cols[colCfg.key].fechaHasta"
-                  type="date"
+                  :model-value="fmtFechaInput(cols[colCfg.key].fechaHasta)"
                   label="Fecha hasta"
                   outlined
                   dense
-                  @update:model-value="onFechaChange(colCfg.key)"
-                />
+                  readonly
+                  clearable
+                  @clear="onClearFecha(colCfg.key, 'fechaHasta')"
+                >
+                  <template #append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          :model-value="cols[colCfg.key].fechaHasta"
+                          mask="YYYY-MM-DD"
+                          minimal
+                          today-btn
+                          @update:model-value="(v) => onPickerFecha(colCfg.key, 'fechaHasta', v)"
+                        >
+                          <div class="row items-center justify-end q-pa-xs">
+                            <q-btn v-close-popup label="Cerrar" color="primary" flat dense size="sm" />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
             </div>
             <div v-if="cols[colCfg.key].fechaError" class="text-caption text-negative q-mt-xs">
@@ -320,6 +358,22 @@ function toggleExpandir(clave, idx) {
   }
 }
 
+function fmtFechaInput(val) {
+  if (!val) return ''
+  const [y, m, d] = val.split('-')
+  return `${d}/${m}/${y}`
+}
+
+function onPickerFecha(clave, campo, valor) {
+  cols[clave][campo] = valor
+  onFechaChange(clave)
+}
+
+function onClearFecha(clave, campo) {
+  cols[clave][campo] = ''
+  onFechaChange(clave)
+}
+
 function onFechaChange(clave) {
   const estado = cols[clave]
   if (estado.fechaDesde && estado.fechaHasta && estado.fechaDesde > estado.fechaHasta) {
@@ -484,16 +538,12 @@ onUnmounted(() => {
 
 .historial-wrapper {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  align-items: flex-start;
-  padding-bottom: 8px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .historial-columna {
-  min-width: 660px;
-  width: 660px;
-  flex-shrink: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -510,6 +560,7 @@ onUnmounted(() => {
 }
 
 .tabla-scroll {
+  overflow-x: auto;
   overflow-y: auto;
   max-height: 460px;
   flex: 1;

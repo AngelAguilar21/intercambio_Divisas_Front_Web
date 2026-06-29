@@ -1,7 +1,17 @@
 <template>
   <q-card flat bordered class="xc-mc-card xc-card-accent xc-enter">
-    <div class="text-subtitle1 text-weight-bold q-mb-md">Cambiar divisas</div>
+    <!-- Card header -->
+    <div class="xc-mc-header">
+      <div class="xc-mc-header-icon">
+        <q-icon name="swap_horiz" size="18px" color="white" />
+      </div>
+      <div class="col">
+        <div class="xc-mc-header-title">Cambiar divisas</div>
+        <div class="xc-mc-header-sub">Ejecución inmediata al mejor precio</div>
+      </div>
+    </div>
 
+    <div class="xc-mc-body">
     <div class="xc-mc-field-group">
       <label class="xc-mc-label">Envías</label>
       <div class="xc-mc-field">
@@ -27,7 +37,7 @@
     </div>
 
     <div class="xc-mc-swap-wrap">
-      <q-separator />
+      <div class="xc-mc-swap-line"></div>
       <q-btn
         round
         unelevated
@@ -37,6 +47,7 @@
         aria-label="Invertir monedas"
         @click="invertir"
       />
+      <div class="xc-mc-swap-line"></div>
     </div>
 
     <div class="xc-mc-field-group">
@@ -57,7 +68,10 @@
       </div>
     </div>
 
-    <q-separator class="q-my-md" />
+    </div><!-- /.xc-mc-body -->
+
+    <div class="xc-mc-rates">
+    <q-separator class="q-mb-md" />
 
     <q-banner v-if="errorMessage" dense rounded class="xchang-banner xchang-banner--error q-mb-sm">
       {{ errorMessage }}
@@ -105,15 +119,16 @@
 
     <q-btn
       unelevated
-      color="primary"
       size="lg"
       no-caps
-      class="full-width q-mt-md"
+      class="full-width q-mt-md xc-mc-cta"
       label="Confirmar cambio"
+      icon-right="check_circle"
       :loading="confirmando"
       :disable="!puedeConfirmar"
       @click="confirmarCambio"
     />
+    </div><!-- /.xc-mc-rates -->
   </q-card>
 </template>
 
@@ -230,19 +245,61 @@ async function confirmarCambio() {
 
 <style scoped>
 .xc-mc-card {
-  padding: 24px;
+  overflow: hidden;
+}
+
+/* Header */
+.xc-mc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a306e 55%, #2563eb 100%);
+  color: #ffffff;
+}
+
+.xc-mc-header-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.xc-mc-header-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.xc-mc-header-sub {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+}
+
+/* Body */
+.xc-mc-body {
+  padding: 12px 20px 8px;
 }
 
 .xc-mc-field-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px 4px;
+  padding: 8px 0;
 }
 
 .xc-mc-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--xchang-text-secondary);
 }
 
@@ -251,6 +308,16 @@ async function confirmarCambio() {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  background: var(--xchang-page-bg);
+  border: 1.5px solid var(--xchang-border);
+  border-radius: var(--xchang-radius-sm);
+  padding: 2px 10px 2px 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.xc-mc-field:focus-within {
+  border-color: var(--xchang-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .xc-mc-input {
@@ -259,7 +326,7 @@ async function confirmarCambio() {
 }
 
 .xc-mc-input-text {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--xchang-page-text);
 }
@@ -267,11 +334,12 @@ async function confirmarCambio() {
 .xc-mc-resultado {
   flex: 1;
   min-width: 0;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--xchang-blue);
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 8px 0;
 }
 
 .xc-mc-select {
@@ -280,39 +348,72 @@ async function confirmarCambio() {
   font-weight: 700;
 }
 
+/* Swap */
 .xc-mc-swap-wrap {
-  position: relative;
   display: flex;
   align-items: center;
-  margin: 2px 0;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.xc-mc-swap-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--xchang-border), transparent);
 }
 
 .xc-mc-swap-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--xchang-blue-pale);
-  color: var(--xchang-blue-dark);
+  background: linear-gradient(135deg, #2563eb, #6366f1) !important;
+  color: #ffffff !important;
   width: 32px;
   height: 32px;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.xc-mc-swap-btn:hover {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45) !important;
+  transform: scale(1.1);
+}
+
+/* Rates section */
+.xc-mc-rates {
+  padding: 0 20px 20px;
 }
 
 .xc-mc-info-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   color: var(--xchang-text-secondary);
-  padding: 4px 2px;
+  padding: 5px 0;
 }
 
 .xc-mc-info-row--total {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--xchang-page-text);
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--xchang-border-light);
   margin-top: 4px;
+}
+
+/* CTA */
+.xc-mc-cta {
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 16px rgba(37, 99, 235, 0.28) !important;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.xc-mc-cta:not([disabled]):hover {
+  box-shadow: 0 7px 22px rgba(37, 99, 235, 0.45) !important;
+  transform: translateY(-1px);
 }
 </style>

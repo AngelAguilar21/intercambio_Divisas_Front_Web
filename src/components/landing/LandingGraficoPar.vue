@@ -3,12 +3,12 @@
     <div class="xc-landing-grafico__inner">
       <div class="text-h5 text-weight-bold q-mb-xs">Precios en tiempo real</div>
       <div class="text-body2 xc-landing-grafico__sub q-mb-md">
-        Mayor precio de compra y menor precio de venta del par USD / EUR
+        Mayor precio de compra y menor precio de venta del par PEN / USD
       </div>
 
       <q-card flat bordered class="q-pa-md q-mb-lg">
-        <div class="text-subtitle1 text-weight-medium q-mb-sm">USD / EUR</div>
-        <GraficoPar origen="USD" destino="EUR" rango="UltimoDia" :auto-refresh="true" />
+        <div class="text-subtitle1 text-weight-medium q-mb-sm">PEN / USD</div>
+        <GraficoPar origen="PEN" destino="USD" rango="UltimoDia" :auto-refresh="true" />
       </q-card>
 
       <div class="row justify-center q-col-gutter-md">

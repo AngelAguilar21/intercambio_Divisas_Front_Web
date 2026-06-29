@@ -1,12 +1,12 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center justify-between q-mb-md">
-      <div>
-        <div class="text-h5">Monedas</div>
-        <div class="text-body2 text-grey-7">
-          Selecciona un par de monedas para ver su detalle y operar.
-        </div>
-      </div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="currency_exchange" size="14px" />
+        Monedas
+      </span>
+      <h1 class="xc-section-title">Monedas</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
     </div>
 
     <q-card flat bordered class="q-pa-md q-mb-md">

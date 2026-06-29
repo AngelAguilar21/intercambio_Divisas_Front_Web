@@ -120,7 +120,7 @@
       <div class="xc-calc-info-row">
         <span>Tasa de cambio</span>
         <span class="xc-figure">
-          {{ cargandoTasa ? 'Calculando…' : tasa ? `1 ${monedaEnvia} = ${formatearMonto(tasaEsInvertida ? tasa : 1 / tasa, 4)} ${monedaRecibe}` : 'Sin datos para este par' }}
+          {{ cargandoTasa ? 'Calculando…' : textoTasa }}
         </span>
       </div>
       <div class="xc-calc-info-row">
@@ -177,7 +177,15 @@ const opcionesMoneda = computed(() =>
 const subtotalRecibe = computed(() => {
   if (!tasa.value) return 0
   const monto = Number(montoEnvia.value) || 0
-  return tasaEsInvertida.value ? monto * tasa.value : monto / tasa.value
+  return tasaEsInvertida.value ? monto / tasa.value : monto * tasa.value
+})
+
+const textoTasa = computed(() => {
+  if (!tasa.value) return 'Sin datos para este par'
+  if (tasaEsInvertida.value) {
+    return `${formatearMonto(tasa.value, 4)} ${monedaEnvia.value} = 1 ${monedaRecibe.value}`
+  }
+  return `1 ${monedaEnvia.value} = ${formatearMonto(tasa.value, 4)} ${monedaRecibe.value}`
 })
 
 const comision = computed(() => subtotalRecibe.value * comisionPct.value)
@@ -230,12 +238,12 @@ async function cargarTasa() {
     console.log('[Calc] respuesta directa:', data)
 
     let fila = data.registros?.[0]
-    // fueDirecto=true → el par se encontró con monedaEntrega=monedaEnvia
-    //   → tasa = "monedaEnvia por 1 monedaRecibe" → hay que DIVIDIR
-    //   Ej: monedaEnvia=PEN, tasa=3.8 → "3.8 PEN por 1 USD" → recibe = monto/3.8
-    // fueDirecto=false → se encontró con monedas invertidas (fallback)
-    //   → tasa = "monedaRecibe por 1 monedaEnvia" → hay que MULTIPLICAR
-    //   Ej: monedaEnvia=USD, tasa=3.8 → "3.8 PEN por 1 USD" → recibe = monto*3.8
+    // fueDirecto=true → par encontrado con monedaEntrega=monedaEnvia
+    //   → tasa = "monedaRecibe por 1 monedaEnvia" → recibe = monto * tasa
+    //   Ej: monedaEnvia=PEN, tasa=0.265 → "0.265 USD por 1 PEN" → recibe = monto * 0.265
+    // fueDirecto=false → encontrado con monedas invertidas (fallback)
+    //   → tasa sigue siendo "monedaEnvia por 1 monedaRecibe" → recibe = monto / tasa
+    //   Ej: monedaEnvia=USD, tasa=0.265 (PEN→USD) → 1 USD = 1/0.265 PEN → recibe = monto / 0.265
     let fueDirecto = true
 
     if (!fila || !fila.menorPrecioVenta) {
@@ -253,7 +261,9 @@ async function cargarTasa() {
 
     console.log('[Calc] fila:', fila, '| fueDirecto:', fueDirecto, '| tasaEsInvertida:', !fueDirecto)
     tasa.value = fila ? Number(fila.menorPrecioVenta) : null
-    tasaEsInvertida.value = !fueDirecto
+    // La BD siempre almacena la tasa como PEN/monedaExtranjera.
+    // Si el par directo encontrado tiene monedaEnvia=PEN, la tasa está en sentido inverso.
+    tasaEsInvertida.value = !fueDirecto || monedaEnvia.value === 'PEN'
     console.log('[Calc] tasa final:', tasa.value, '| tasaEsInvertida:', tasaEsInvertida.value)
   } catch (e) {
     console.error('[Calc] error en cargarTasa:', e)

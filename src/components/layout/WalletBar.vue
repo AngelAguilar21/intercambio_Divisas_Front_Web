@@ -1,8 +1,27 @@
 <template>
   <div class="xc-wallet-bar">
-    <div v-if="conSaldo.length === 0" class="xc-wallet-bar-empty">No existen fondos disponibles</div>
+    <q-btn flat dense round icon="account_balance_wallet" size="sm" color="white" class="xc-wallet-main-btn">
+      <q-tooltip>Billetera</q-tooltip>
+      <q-menu anchor="bottom right" self="top right">
+        <q-list style="min-width: 180px">
+          <q-item clickable v-close-popup :to="{ name: 'billetera' }">
+            <q-item-section avatar><q-icon name="account_balance_wallet" /></q-item-section>
+            <q-item-section>Ver billetera</q-item-section>
+          </q-item>
+          <q-separator />
+          <q-item clickable v-close-popup :to="{ name: 'deposito' }">
+            <q-item-section avatar><q-icon name="south_west" /></q-item-section>
+            <q-item-section>Depositar</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup :to="{ name: 'retiro' }">
+            <q-item-section avatar><q-icon name="north_east" /></q-item-section>
+            <q-item-section>Retirar</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
 
-    <div v-else class="xc-wallet-bar-row">
+    <div v-if="conSaldo.length > 0" class="xc-wallet-bar-row">
       <q-chip
         v-for="saldo in conSaldo"
         :key="saldo.monedaId"
@@ -125,6 +144,11 @@ onMounted(() => {
   margin-right: 5px;
   opacity: 0.65;
   font-size: 0.70rem;
+}
+
+.xc-wallet-main-btn {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .xc-wallet-toggle {

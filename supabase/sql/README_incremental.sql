@@ -1,0 +1,5 @@
+-- No se requiere SQL incremental si ejecutaste script_completo_supabase_ezchange.sql completo.
+-- Este paquete usa exactamente las tablas, estados y RPC ya definidas allí:
+--   restriccionesusuario, auditoriaadministrativa, historicopreciospar(snapshotminuto),
+--   ejecutar_compra_inmediata_segura y ejecutar_venta_inmediata_segura.
+-- La protección admin contra admin ya está en triggers del script base.

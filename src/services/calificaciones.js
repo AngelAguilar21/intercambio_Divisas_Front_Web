@@ -1,17 +1,7 @@
-import { api } from '@/boot/axios'
-
-export function getPendientes() {
-  return api.get('/calificaciones/pendientes')
+export function getCalificaciones() {
+  return Promise.resolve({ data: [] })
 }
 
-export function crearCalificacion(payload) {
-  return api.post('/calificaciones', payload)
-}
-
-export function getCalificacionesUsuario(usuarioId) {
-  return api.get(`/calificaciones/usuario/${usuarioId}`)
-}
-
-export function reportarCalificacion(id) {
-  return api.post(`/calificaciones/${id}/reportar`)
+export function crearCalificacion() {
+  return Promise.resolve({ data: { mensaje: 'No aplica al modelo Ezchange.' } })
 }

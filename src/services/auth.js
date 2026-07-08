@@ -8,7 +8,7 @@ export function register(payload) {
   return api.post('/auth/register', payload)
 }
 
-export function logout(token) {
+export function logout(token = localStorage.getItem('xchang_token')) {
   return api.post('/auth/logout', { token })
 }
 
@@ -24,18 +24,18 @@ export function getMenu() {
   return api.get('/auth/menu')
 }
 
-export function verificarCorreo(token) {
-  return api.post('/auth/verificar-correo', { token })
-}
-
-export function reenviarVerificacion(correoElectronico) {
-  return api.post('/auth/reenviar-verificacion', { correoElectronico })
-}
-
-export function forgotPassword(correoElectronico) {
-  return api.post('/auth/forgot-password', { correoElectronico })
+export function forgotPassword(payload) {
+  return api.post('/auth/forgot-password', payload)
 }
 
 export function resetPassword(payload) {
   return api.post('/auth/reset-password', payload)
+}
+
+export function verificarCorreo(payload) {
+  return api.post('/auth/verificar-correo', payload)
+}
+
+export function reenviarVerificacion(payload) {
+  return api.post('/auth/reenviar-verificacion', payload)
 }

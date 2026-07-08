@@ -1,17 +1,21 @@
-import { api } from '@/boot/axios'
-
-export function getNotificaciones(params = {}) {
-  return api.get('/notificaciones', { params })
-}
-
+// Correos/notificaciones quedan pausados por ahora. El frontend mantiene la API local
+// Servicio temporal para evitar errores en la barra mientras se implementa el módulo de notificaciones.
 export function getContador() {
-  return api.get('/notificaciones/contador')
+  return Promise.resolve({ data: { noLeidas: 0 } })
 }
 
-export function marcarLeida(id) {
-  return api.post(`/notificaciones/${id}/leida`)
+export function getContadorNoLeidas() {
+  return getContador()
+}
+
+export function getNotificaciones() {
+  return Promise.resolve({ data: { lista: [], noLeidas: 0 } })
+}
+
+export function marcarLeida() {
+  return Promise.resolve({ data: {} })
 }
 
 export function marcarTodasLeidas() {
-  return api.post('/notificaciones/marcar-todas-leidas')
+  return Promise.resolve({ data: {} })
 }

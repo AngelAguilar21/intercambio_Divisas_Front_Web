@@ -5,16 +5,12 @@ export function getMenuPrincipal() {
 }
 
 export function getListadoPares(filtro = {}) {
-  return api.get('/preciospares', {
-    params: filtro,
-  })
+  return api.get('/preciospares', { params: filtro })
 }
 
 export function getSerieHistorica(monedaOrigen, monedaDestino, rango = 'UltimoDia') {
   return api.get(`/preciospares/serie/${monedaOrigen}/${monedaDestino}`, {
-    params: {
-      rango,
-    },
+    params: { rango },
   })
 }
 

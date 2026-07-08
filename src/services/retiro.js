@@ -1,21 +1,17 @@
 import { api } from '@/boot/axios'
 
 export function getMetodosCobro() {
-  return api.get('/retiro/metodos-cobro')
+  return api.get('/Retiro/metodos-cobro')
 }
 
 export function calcular(payload) {
-  return api.post('/retiro/calcular', payload)
+  return api.post('/Retiro/calcular', payload)
 }
 
 export function registrar(payload) {
-  return api.post('/retiro', payload)
+  return api.post('/Retiro', payload)
 }
 
-export function subirVoucher(retiroId, archivo) {
-  const formData = new FormData()
-  formData.append('archivo', archivo)
-  return api.post(`/retiro/${retiroId}/voucher`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+export function subirVoucher() {
+  return Promise.resolve({ data: { mensaje: 'Carga de voucher pendiente.' } })
 }

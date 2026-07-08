@@ -5,47 +5,31 @@ function toNumber(value) {
   return Number.isFinite(n) ? n : 0
 }
 
-function normalizarCompraPayload(payload = {}) {
-  return {
+export function getResumen(payload = {}) {
+  return api.post('/CompraInmediata/resumen', {
     ParMonedaId: toNumber(payload.ParMonedaId ?? payload.parMonedaId),
     CantidadAObtener: toNumber(payload.CantidadAObtener ?? payload.cantidadAObtener),
-  }
+  })
 }
 
-function normalizarConfirmarCompraPayload(payload = {}) {
-  return {
+export function confirmar(payload = {}) {
+  return api.post('/CompraInmediata/confirmar', {
     ParMonedaId: toNumber(payload.ParMonedaId ?? payload.parMonedaId),
     CantidadAObtener: toNumber(payload.CantidadAObtener ?? payload.cantidadAObtener),
-    ComprarCantidadDisponible: Boolean(
-      payload.ComprarCantidadDisponible ?? payload.comprarCantidadDisponible ?? false,
-    ),
-  }
-}
-
-function normalizarRutaCompraPayload(payload = {}) {
-  return {
-    ParMonedaId: toNumber(payload.ParMonedaId ?? payload.parMonedaId),
-    CantidadAObtener: toNumber(payload.CantidadAObtener ?? payload.cantidadAObtener),
-    CantidadMaximaSaltos: toNumber(
-      payload.CantidadMaximaSaltos ?? payload.cantidadMaximaSaltos ?? 1,
-    ),
-  }
-}
-
-export function getResumen(payload) {
-  return api.post('/CompraInmediata/resumen', normalizarCompraPayload(payload))
-}
-
-export function confirmar(payload) {
-  return api.post('/CompraInmediata/confirmar', normalizarConfirmarCompraPayload(payload))
+    ComprarCantidadDisponible: Boolean(payload.ComprarCantidadDisponible ?? payload.comprarCantidadDisponible ?? false),
+  })
 }
 
 export function getTiempoBusqueda(saltos) {
   return api.get(`/CompraInmediata/tiempo-busqueda/${saltos}`)
 }
 
-export function buscarRuta(payload) {
-  return api.post('/CompraInmediata/buscar-ruta', normalizarRutaCompraPayload(payload))
+export function buscarRuta(payload = {}) {
+  return api.post('/CompraInmediata/buscar-ruta', {
+    ParMonedaId: toNumber(payload.ParMonedaId ?? payload.parMonedaId),
+    CantidadAObtener: toNumber(payload.CantidadAObtener ?? payload.cantidadAObtener),
+    CantidadMaximaSaltos: toNumber(payload.CantidadMaximaSaltos ?? payload.cantidadMaximaSaltos ?? 1),
+  })
 }
 
 export function cancelarRuta(busquedaRutaId) {
@@ -56,7 +40,7 @@ export function cancelarBusquedaRuta(busquedaRutaId) {
   return cancelarRuta(busquedaRutaId)
 }
 
-export function confirmarRuta(payload) {
+export function confirmarRuta(payload = {}) {
   return api.post('/CompraInmediata/confirmar-ruta', {
     BusquedaRutaId: toNumber(payload.BusquedaRutaId ?? payload.busquedaRutaId),
   })

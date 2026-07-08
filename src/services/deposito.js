@@ -1,21 +1,17 @@
 import { api } from '@/boot/axios'
 
 export function getMetodosPago() {
-  return api.get('/deposito/metodos-pago')
+  return api.get('/Deposito/metodos-pago')
 }
 
 export function calcular(payload) {
-  return api.post('/deposito/calcular', payload)
+  return api.post('/Deposito/calcular', payload)
 }
 
 export function registrar(payload) {
-  return api.post('/deposito', payload)
+  return api.post('/Deposito', payload)
 }
 
-export function subirVoucher(depositoId, archivo) {
-  const formData = new FormData()
-  formData.append('archivo', archivo)
-  return api.post(`/deposito/${depositoId}/voucher`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+export function subirVoucher() {
+  return Promise.resolve({ data: { mensaje: 'Carga de voucher pendiente.' } })
 }

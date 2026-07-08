@@ -1,13 +1,13 @@
 import { api } from '@/boot/axios'
 
 export function buscarAuditoria(filtro = {}) {
-  return api.get('/auditoriaadministrativa/registros', { params: filtro })
+  return api.get('/AuditoriaAdministrativa/registros', { params: filtro })
 }
 
-export function exportarExcel(filtro = {}) {
-  return api.post('/auditoriaadministrativa/exportar-excel', filtro, { responseType: 'blob' })
+export function exportarExcel(payload = {}) {
+  return api.post('/AuditoriaAdministrativa/exportar-excel', payload, { responseType: 'blob' })
 }
 
-export function exportarPdf(filtro = {}) {
-  return api.post('/auditoriaadministrativa/exportar-pdf', filtro, { responseType: 'blob' })
+export function exportarPdf(payload = {}) {
+  return api.post('/AuditoriaAdministrativa/exportar-pdf', payload, { responseType: 'blob' })
 }

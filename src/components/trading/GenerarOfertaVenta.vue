@@ -113,6 +113,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { normalizarMensajeError } from '@/utils/validaciones'
 import { getResumenOferta, crearOferta } from '@/services/mercado'
 
 const props = defineProps({
@@ -196,7 +197,7 @@ async function onEnviar() {
       await onConfirmar()
     }
   } catch (e) {
-    errorMsg.value = e.response?.data?.mensaje || 'No se pudo procesar la oferta.'
+    errorMsg.value = normalizarMensajeError(e, 'No se pudo procesar la oferta.')
   } finally {
     enviando.value = false
   }
@@ -216,7 +217,7 @@ async function onConfirmar() {
     limpiarTodo()
     emit('operacion-completada')
   } catch (e) {
-    errorMsg.value = e.response?.data?.mensaje || 'No se pudo crear la oferta.'
+    errorMsg.value = normalizarMensajeError(e, 'No se pudo crear la oferta.')
   } finally {
     enviando.value = false
   }

@@ -15,3 +15,7 @@ export function restringirUsuario(usuarioId, mensaje) {
 export function habilitarUsuario(usuarioId, mensaje) {
   return api.post(`/GestionUsuariosAdmin/usuarios/${usuarioId}/habilitar`, { mensaje })
 }
+
+export function generarMensajeIa(usuarioId, payload) {
+  return api.post(`/GestionUsuariosAdmin/usuarios/${usuarioId}/mensaje-ia`, payload)
+}

@@ -76,9 +76,9 @@
           @update:model-value="ruta = null"
         />
 
-        <div v-if="tiempoBusqueda" class="text-caption text-grey-7 q-mb-xs">
+        <q-banner v-if="tiempoBusqueda" dense rounded class="xchang-banner xchang-banner--info q-mb-xs">
           Tiempo estimado: {{ tiempoBusqueda.tiempoEstimadoTexto }}
-        </div>
+        </q-banner>
 
         <q-btn
           v-if="!buscando"
@@ -107,7 +107,7 @@
             dense rounded
             class="xchang-banner xchang-banner--warning q-mt-sm"
           >
-            {{ ruta.mensaje || 'No se encontró una ruta más barata.' }}
+            {{ ruta.mensaje || 'No se encontró una ruta más barata' }}
           </q-banner>
           <template v-else>
             <q-list dense bordered class="q-mt-sm">
@@ -198,6 +198,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { normalizarMensajeError } from '@/utils/validaciones'
 import {
   getResumen,
   confirmar,
@@ -290,7 +291,7 @@ async function onConfirmarNormal() {
     limpiar()
     emit('operacion-completada')
   } catch (e) {
-    errorMsg.value = e.response?.data?.mensaje || 'No se pudo confirmar la compra.'
+    errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la compra.')
   } finally {
     confirmando.value = false
   }
@@ -310,7 +311,7 @@ async function onBuscar() {
     ruta.value = data
     busquedaRutaIdActiva.value = data.busquedaRutaId
   } catch (e) {
-    errorMsg.value = e.response?.data?.mensaje || 'No se pudo buscar la ruta.'
+    errorMsg.value = normalizarMensajeError(e, 'No se pudo buscar la ruta.')
   } finally {
     buscando.value = false
   }
@@ -334,7 +335,7 @@ async function onConfirmarRuta() {
     limpiar()
     emit('operacion-completada')
   } catch (e) {
-    errorMsg.value = e.response?.data?.mensaje || 'No se pudo confirmar la ruta.'
+    errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la ruta.')
   } finally {
     confirmando.value = false
   }

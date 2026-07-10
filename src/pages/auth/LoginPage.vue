@@ -2,22 +2,17 @@
   <div>
     <div class="text-h4 text-weight-bold q-mb-lg">Te damos la bienvenida</div>
 
-    <q-form class="q-gutter-lg" @submit.prevent="onSubmit">
+    <q-form ref="formRef" class="q-gutter-lg" @submit.prevent="onSubmit">
       <q-input
-        v-model="form.identificadorAcceso"
+        v-model.trim="form.identificadorAcceso"
         name="identificadorAcceso"
         label="Usuario o correo electrónico"
         outlined
         stack-label
-        lazy-rules
         :error="!!erroresServidor.identificadorAcceso"
         :error-message="erroresServidor.identificadorAcceso"
-        :rules="[
-          () =>
-            validarIdentificador(form.identificadorAcceso) === true ||
-            validarIdentificador(form.identificadorAcceso),
-        ]"
-        @update:model-value="erroresServidor.identificadorAcceso = ''"
+        :rules="[validarIdentificadorAcceso]"
+        @update:model-value="limpiarErrorCampo('identificadorAcceso')"
       />
 
       <q-input
@@ -26,12 +21,11 @@
         label="Contraseña"
         outlined
         stack-label
-        lazy-rules
         :type="showPassword ? 'text' : 'password'"
         :error="!!erroresServidor.password"
         :error-message="erroresServidor.password"
-        :rules="[() => validarPassword(form.password) === true || validarPassword(form.password)]"
-        @update:model-value="erroresServidor.password = ''"
+        :rules="[validarPassword]"
+        @update:model-value="limpiarErrorCampo('password')"
       >
         <template #append>
           <q-icon
@@ -59,14 +53,10 @@
     </q-form>
 
     <div class="text-center q-mt-lg">
-      <router-link :to="{ name: 'forgot-password' }" class="xc-auth-link"
-        >¿Olvidaste tu contraseña?</router-link
-      >
+      <router-link :to="{ name: 'forgot-password' }" class="xc-auth-link">¿Olvidaste tu contraseña?</router-link>
     </div>
     <div class="text-center q-mt-sm">
-      <router-link :to="{ name: 'register' }" class="xc-auth-link"
-        >¿No tienes cuenta? Regístrate</router-link
-      >
+      <router-link :to="{ name: 'register' }" class="xc-auth-link">¿No tienes cuenta? Regístrate</router-link>
     </div>
   </div>
 </template>
@@ -75,58 +65,53 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { normalizarMensajeError, validarIdentificadorAcceso, validarPassword } from '@/utils/validaciones'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+const formRef = ref(null)
 const form = reactive({ identificadorAcceso: '', password: '' })
 const erroresServidor = reactive({ identificadorAcceso: '', password: '' })
 const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-function validarIdentificador(val) {
-  if (!val || val.length < 2) return 'Mínimo 2 caracteres'
-  if (val.length > 100) return 'Máximo 100 caracteres'
-  return true
-}
-
-function validarPassword(val) {
-  if (!val || val.length < 8) return 'Mínimo 8 caracteres'
-  if (val.length > 50) return 'Máximo 50 caracteres'
-  return true
-}
-
-const formularioValido = computed(() => {
-  return (
-    validarIdentificador(form.identificadorAcceso) === true &&
+const formularioValido = computed(
+  () =>
+    validarIdentificadorAcceso(form.identificadorAcceso) === true &&
     validarPassword(form.password) === true &&
     !erroresServidor.identificadorAcceso &&
-    !erroresServidor.password
-  )
-})
+    !erroresServidor.password,
+)
+
+function limpiarErrorCampo(campo) {
+  erroresServidor[campo] = ''
+  errorMessage.value = ''
+}
 
 async function onSubmit() {
-  if (!formularioValido.value) return
-
-  loading.value = true
   errorMessage.value = ''
   erroresServidor.identificadorAcceso = ''
   erroresServidor.password = ''
 
+  const valido = await formRef.value?.validate()
+  if (!valido || !formularioValido.value) return
+
+  loading.value = true
   try {
-    await authStore.login(form)
+    await authStore.login({ ...form })
     router.push({ name: 'dashboard' })
   } catch (error) {
-    const mensaje = error.response?.data?.mensaje || ''
-    const mensajeNormalizado = mensaje.toLowerCase()
+    const mensaje = normalizarMensajeError(error, 'Credenciales inválidas')
+    const lower = mensaje.toLowerCase()
 
-    if (mensajeNormalizado.includes('no registrado') || mensajeNormalizado.includes('no existe')) {
+    if (lower.includes('no registrado') || lower.includes('no existe')) {
       erroresServidor.identificadorAcceso = 'Usuario o correo no registrado'
-    } else if (mensajeNormalizado.includes('contraseña')) {
+    } else if (lower.includes('contraseña incorrecta')) {
       erroresServidor.password = 'Contraseña incorrecta'
     } else {
-      errorMessage.value = mensaje || 'No se pudo iniciar sesión.'
+      errorMessage.value = mensaje === 'Valor inválido' ? 'Credenciales inválidas' : mensaje
     }
   } finally {
     loading.value = false

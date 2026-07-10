@@ -1,11 +1,32 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h5 q-mb-md">Mi perfil</div>
+    <div class="xc-page-head">
+      <span class="xc-section-kicker">
+        <q-icon name="account_circle" size="14px" />
+        Usuario
+      </span>
+      <h1 class="xc-section-title">Mi perfil</h1>
+      <div class="xc-section-bar" aria-hidden="true" />
+    </div>
 
     <div class="row q-col-gutter-md">
       <div class="col-12 col-md-6">
         <q-card flat bordered class="q-pa-md">
           <div class="text-subtitle1 text-weight-medium q-mb-md">Editar datos</div>
+
+          <div class="column items-center q-mb-md">
+            <q-avatar size="96px" class="q-mb-sm">
+              <img
+                v-if="form.fotoUrl"
+                :src="form.fotoUrl"
+                :alt="form.nombreUsuario"
+                style="object-fit: cover"
+                @error="imgError = true"
+              />
+              <q-icon v-else name="account_circle" size="96px" color="grey-5" />
+            </q-avatar>
+            <div class="text-subtitle2 text-weight-medium">{{ form.nombreUsuario }}</div>
+          </div>
 
           <q-form class="q-gutter-md" @submit.prevent="onSubmit">
             <q-input
@@ -54,27 +75,7 @@
                 >{{ perfil?.tipoDocumento }} {{ perfil?.numeroDocumento }}</q-item-section
               >
             </q-item>
-            <q-item>
-              <q-item-section>Calificación promedio</q-item-section>
-              <q-item-section side>
-                <div
-                  v-if="perfil?.calificacionPromedio != null"
-                  class="row items-center q-gutter-xs"
-                >
-                  <q-icon
-                    v-for="n in 5"
-                    :key="n"
-                    :name="n <= Math.round(perfil.calificacionPromedio) ? 'star' : 'star_outline'"
-                    color="warning"
-                    size="16px"
-                  />
-                  <span class="xc-figure q-ml-xs">{{
-                    perfil.calificacionPromedio.toFixed(1)
-                  }}</span>
-                </div>
-                <span v-else>Sin calificaciones</span>
-              </q-item-section>
-            </q-item>
+
             <q-item>
               <q-item-section>Transacciones completadas</q-item-section>
               <q-item-section side class="xc-figure">{{
@@ -89,7 +90,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { getPerfil, actualizarPerfil } from '@/services/perfil'
 
 const perfil = ref(null)
@@ -97,31 +98,56 @@ const form = reactive({ nombreUsuario: '', telefono: '', fotoUrl: '' })
 const saving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const imgError = ref(false)
 
 async function cargarPerfil() {
   try {
     const { data } = await getPerfil()
     perfil.value = data
-    form.nombreUsuario = data.nombreUsuario
-    form.telefono = data.telefono || ''
-    form.fotoUrl = data.fotoUrl || ''
+    form.nombreUsuario = data.nombreUsuario ?? data.NombreUsuario ?? ''
+    form.telefono = data.telefono ?? data.Telefono ?? ''
+    form.fotoUrl = data.fotoUrl ?? data.FotoUrl ?? ''
   } catch (error) {
+    const status = error.response?.status
+    const msg = error.response?.data?.mensaje || error.message
+    console.error(`[PerfilPage] Error al cargar perfil — HTTP ${status ?? 'sin respuesta'}:`, msg, error)
     errorMessage.value = error.response?.data?.mensaje || 'No se pudo cargar el perfil.'
   }
 }
 
 onMounted(cargarPerfil)
 
+watch(() => form.fotoUrl, () => { imgError.value = false })
+
 async function onSubmit() {
   saving.value = true
   errorMessage.value = ''
   successMessage.value = ''
   try {
-    const { data } = await actualizarPerfil(form)
+    const payload = {
+      ...form,
+      tipoDocumento: perfil.value?.tipoDocumento ?? perfil.value?.TipoDocumento ?? null,
+      numeroDocumento: perfil.value?.numeroDocumento ?? perfil.value?.NumeroDocumento ?? null,
+    }
+    const { data } = await actualizarPerfil(payload)
     perfil.value = data
+    form.nombreUsuario = data.nombreUsuario ?? data.NombreUsuario ?? ''
+    form.telefono = data.telefono ?? data.Telefono ?? ''
+    form.fotoUrl = data.fotoUrl ?? data.FotoUrl ?? ''
     successMessage.value = 'Perfil actualizado correctamente.'
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo actualizar el perfil.'
+    const status = error.response?.status
+    const respData = error.response?.data
+    console.error(
+      `[PerfilPage] PUT /api/perfil falló — HTTP ${status ?? 'sin respuesta'}`,
+      '\nBody enviado:', JSON.stringify(form),
+      '\nRespuesta del servidor:', respData,
+      '\nError completo:', error,
+    )
+    if (respData?.detalle) {
+      console.error('[PerfilPage] Detalle del servidor:', respData.detalle)
+    }
+    errorMessage.value = respData?.mensaje || 'No se pudo actualizar el perfil.'
   } finally {
     saving.value = false
   }

@@ -10,21 +10,58 @@
     </div>
 
     <q-card flat bordered class="q-pa-md q-mb-md xc-card-accent">
-      <div class="row q-col-gutter-md items-end">
+      <div class="row q-col-gutter-md items-center">
         <div class="col-12 col-md-3">
-          <q-input v-model="filtros.desde" type="date" label="Fecha desde" outlined dense />
+          <q-input
+            :model-value="fmtFechaInput(filtros.desde)"
+            label="Fecha desde"
+            outlined
+            dense
+            readonly
+            clearable
+            stack-label
+            @clear="filtros.desde = ''"
+          >
+            <template #append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="filtros.desde" mask="YYYY-MM-DD" minimal today-btn>
+                    <div class="row items-center justify-end q-pa-xs">
+                      <q-btn v-close-popup label="Cerrar" color="primary" flat dense size="sm" />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
         </div>
 
         <div class="col-12 col-md-3">
           <q-input
-            v-model="filtros.hasta"
-            type="date"
+            :model-value="fmtFechaInput(filtros.hasta)"
             label="Fecha hasta"
             outlined
             dense
+            readonly
+            clearable
+            stack-label
             :error="fechaInvalida"
+            :hide-bottom-space="!fechaInvalida"
             error-message="La fecha final debe ser posterior a la fecha inicial"
-          />
+            @clear="filtros.hasta = ''"
+          >
+            <template #append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="filtros.hasta" mask="YYYY-MM-DD" minimal today-btn>
+                    <div class="row items-center justify-end q-pa-xs">
+                      <q-btn v-close-popup label="Cerrar" color="primary" flat dense size="sm" />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
         </div>
 
         <div class="col-12 col-md-3">
@@ -33,6 +70,7 @@
             label="Registros por página"
             outlined
             dense
+            hide-bottom-space
             :options="[10, 20, 50, 100]"
           />
         </div>
@@ -54,7 +92,7 @@
     </q-banner>
 
     <div class="row q-col-gutter-md">
-      <div class="col-12 col-lg-6">
+      <div class="col-12">
         <q-card flat bordered class="xc-card-accent">
           <q-card-section class="row items-center q-gutter-sm">
             <div class="xc-icon-badge">
@@ -142,7 +180,7 @@
         </q-card>
       </div>
 
-      <div class="col-12 col-lg-6">
+      <div class="col-12">
         <q-card flat bordered class="xc-card-accent">
           <q-card-section class="row items-center q-gutter-sm">
             <div class="xc-icon-badge">
@@ -463,6 +501,12 @@ function irAPaginaOrdenes(pagina) {
 function irAPaginaOfertas(pagina) {
   paginacionOfertas.page = pagina
   cargarOfertas()
+}
+
+function fmtFechaInput(val) {
+  if (!val) return ''
+  const [y, m, d] = val.split('-')
+  return `${d}/${m}/${y}`
 }
 
 function formatearFecha(fecha) {

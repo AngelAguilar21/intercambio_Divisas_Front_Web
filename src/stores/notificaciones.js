@@ -9,14 +9,22 @@ export const useNotificacionesStore = defineStore('notificaciones', {
 
   actions: {
     async fetchContador() {
-      const { data } = await notifService.getContador()
-      this.noLeidas = data.noLeidas
+      try {
+        const { data } = await notifService.getContador()
+        this.noLeidas = data.noLeidas
+      } catch {
+        // endpoint aún no implementado en el backend
+      }
     },
 
     async fetchLista(soloNoLeidas = false) {
-      const { data } = await notifService.getNotificaciones({ soloNoLeidas, tamanoPagina: 30 })
-      this.items = data.lista
-      this.noLeidas = data.noLeidas
+      try {
+        const { data } = await notifService.getNotificaciones({ soloNoLeidas, tamanoPagina: 30 })
+        this.items = data.lista
+        this.noLeidas = data.noLeidas
+      } catch {
+        // endpoint aún no implementado en el backend
+      }
     },
 
     async marcarLeida(id) {

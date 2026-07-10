@@ -2,17 +2,82 @@
   <div>
     <div class="text-h4 text-weight-bold q-mb-lg">Crea tu cuenta</div>
 
-    <q-form class="q-gutter-lg" @submit.prevent="onSubmit">
-      <q-input v-model="form.nombreUsuario" label="Nombre de usuario" outlined stack-label lazy-rules :rules="[validarNombreUsuario]" />
-      <q-input v-model="form.correoElectronico" label="Correo electrónico" type="email" outlined stack-label lazy-rules :rules="[validarCorreo]" />
-      <q-select v-model="form.paisId" label="País de residencia" outlined stack-label lazy-rules :options="paisOptions" :loading="cargandoPaises" emit-value map-options :rules="[validarPais]" />
-      <q-input v-model="form.password" label="Contraseña" outlined stack-label lazy-rules :type="showPassword ? 'text' : 'password'" :rules="[validarPassword]">
-        <template #append><q-icon :name="showPassword ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="showPassword = !showPassword" /></template>
-      </q-input>
-      <q-input v-model="form.confirmarPassword" label="Confirmar contraseña" outlined stack-label lazy-rules :type="showPassword ? 'text' : 'password'" :rules="[validarConfirmarPassword]" />
+    <q-form ref="formRef" class="q-gutter-lg" @submit.prevent="onSubmit">
+      <q-input
+        v-model.trim="form.nombreUsuario"
+        label="Nombre de usuario"
+        outlined
+        stack-label
+        :error="!!erroresServidor.nombreUsuario"
+        :error-message="erroresServidor.nombreUsuario"
+        :rules="[validarNombreUsuario]"
+        @update:model-value="erroresServidor.nombreUsuario = ''"
+      />
 
-      <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>{{ errorMessage }}</q-banner>
-      <q-btn type="submit" color="primary" label="Registrarse" size="lg" class="full-width" unelevated :loading="loading" :disable="!formularioValido" />
+      <q-input
+        v-model.trim="form.correoElectronico"
+        label="Correo electrónico"
+        type="email"
+        outlined
+        stack-label
+        :error="!!erroresServidor.correoElectronico"
+        :error-message="erroresServidor.correoElectronico"
+        :rules="[validarCorreo]"
+        @update:model-value="erroresServidor.correoElectronico = ''"
+      />
+
+      <q-select
+        v-model="form.paisId"
+        label="País de residencia"
+        outlined
+        stack-label
+        :options="paisOptions"
+        :loading="cargandoPaises"
+        emit-value
+        map-options
+        :rules="[(val) => validarRequerido(val, 'Seleccione un país')]"
+      />
+
+      <q-input
+        v-model="form.password"
+        label="Contraseña"
+        outlined
+        stack-label
+        :type="showPassword ? 'text' : 'password'"
+        :rules="[(val) => validarPassword(val, { exigirComplejidad: true })]"
+      >
+        <template #append>
+          <q-icon
+            :name="showPassword ? 'visibility_off' : 'visibility'"
+            class="cursor-pointer"
+            @click="showPassword = !showPassword"
+          />
+        </template>
+      </q-input>
+
+      <q-input
+        v-model="form.confirmarPassword"
+        label="Confirmar contraseña"
+        outlined
+        stack-label
+        :type="showPassword ? 'text' : 'password'"
+        :rules="[(val) => validarConfirmarPassword(val, form.password)]"
+      />
+
+      <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>
+        {{ errorMessage }}
+      </q-banner>
+
+      <q-btn
+        type="submit"
+        color="primary"
+        label="Registrarse"
+        size="lg"
+        class="full-width"
+        unelevated
+        :loading="loading"
+        :disable="!formularioValido"
+      />
     </q-form>
 
     <div class="text-center q-mt-lg">
@@ -26,12 +91,27 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getPaises } from '@/services/paises'
+import {
+  normalizarMensajeError,
+  validarConfirmarPassword,
+  validarCorreo,
+  validarNombreUsuario,
+  validarPassword,
+  validarRequerido,
+} from '@/utils/validaciones'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const correoPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const form = reactive({ nombreUsuario: '', correoElectronico: '', paisId: null, password: '', confirmarPassword: '' })
+const formRef = ref(null)
+const form = reactive({
+  nombreUsuario: '',
+  correoElectronico: '',
+  paisId: null,
+  password: '',
+  confirmarPassword: '',
+})
+const erroresServidor = reactive({ nombreUsuario: '', correoElectronico: '' })
 const paisOptions = ref([])
 const cargandoPaises = ref(false)
 const showPassword = ref(false)
@@ -43,49 +123,58 @@ onMounted(async () => {
   try {
     const { data } = await getPaises()
     paisOptions.value = data.map((pais) => ({ label: pais.nombre, value: pais.paisId }))
-  } finally { cargandoPaises.value = false }
+  } finally {
+    cargandoPaises.value = false
+  }
 })
 
-function validarNombreUsuario(val) {
-  if (!val || val.length < 2) return 'Mínimo 2 caracteres'
-  if (val.length > 30) return 'Máximo 30 caracteres'
-  return true
-}
-function validarCorreo(val) {
-  if (!val || val.length < 5) return 'Mínimo 5 caracteres'
-  if (val.length > 100) return 'Máximo 100 caracteres'
-  if (!correoPattern.test(val)) return 'Correo inválido'
-  return true
-}
-function validarPassword(val) {
-  if (!val || val.length < 8) return 'Mínimo 8 caracteres'
-  if (val.length > 50) return 'Máximo 50 caracteres'
-  return true
-}
-function validarConfirmarPassword() {
-  if (form.confirmarPassword !== form.password) return 'No coinciden'
-  return true
-}
-function validarPais(val) {
-  if (!val) return 'Seleccione un país'
-  return true
-}
-const formularioValido = computed(() => validarNombreUsuario(form.nombreUsuario) === true && validarCorreo(form.correoElectronico) === true && validarPassword(form.password) === true && validarConfirmarPassword() === true && validarPais(form.paisId) === true)
+const formularioValido = computed(
+  () =>
+    validarNombreUsuario(form.nombreUsuario) === true &&
+    validarCorreo(form.correoElectronico) === true &&
+    validarRequerido(form.paisId, 'Seleccione un país') === true &&
+    validarPassword(form.password, { exigirComplejidad: true }) === true &&
+    validarConfirmarPassword(form.confirmarPassword, form.password) === true &&
+    !erroresServidor.nombreUsuario &&
+    !erroresServidor.correoElectronico,
+)
 
 async function onSubmit() {
-  if (!formularioValido.value) return
-  loading.value = true
   errorMessage.value = ''
+  erroresServidor.nombreUsuario = ''
+  erroresServidor.correoElectronico = ''
+
+  const valido = await formRef.value?.validate()
+  if (!valido || !formularioValido.value) return
+
+  loading.value = true
   try {
-    await authStore.register(form)
+    await authStore.register({ ...form })
     router.push({ name: 'dashboard' })
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'Valor inválido'
-  } finally { loading.value = false }
+    const mensaje = normalizarMensajeError(error, 'Valor inválido')
+    const lower = mensaje.toLowerCase()
+
+    if (lower.includes('usuario ya')) {
+      erroresServidor.nombreUsuario = 'Usuario ya registrado'
+    } else if (lower.includes('correo ya')) {
+      erroresServidor.correoElectronico = 'Correo ya registrado'
+    } else {
+      errorMessage.value = mensaje
+    }
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <style scoped>
-.xc-auth-link { color: var(--q-primary); font-weight: 600; text-decoration: none; }
-.xc-auth-link:hover { text-decoration: underline; }
+.xc-auth-link {
+  color: var(--q-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.xc-auth-link:hover {
+  text-decoration: underline;
+}
 </style>

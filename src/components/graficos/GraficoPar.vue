@@ -1,11 +1,9 @@
 <template>
   <div>
-    <!-- Cargando por primera vez -->
     <div v-if="cargando && !serie.length" class="flex flex-center grafico-wrapper">
       <q-spinner size="lg" color="primary" />
     </div>
 
-    <!-- Sin datos ni carga activa -->
     <div v-else-if="!serie.length" class="grafico-wrapper flex flex-center">
       <q-banner
         v-if="errorCarga"
@@ -24,8 +22,16 @@
       </span>
     </div>
 
-    <!-- Gráfico + indicadores -->
     <div v-else>
+      <q-banner
+        v-if="rangoEfectivo !== props.rango"
+        dense
+        rounded
+        class="xchang-banner xchang-banner--info q-mb-sm"
+      >
+        No había datos en Último día. Se muestra automáticamente Última semana.
+      </q-banner>
+
       <div
         ref="canvasWrapper"
         class="grafico-wrapper"
@@ -35,7 +41,6 @@
         <Line ref="lineRef" :data="chartData" :options="chartOptions" />
       </div>
 
-      <!-- Indicadores debajo del gráfico (punto actualmente señalado) -->
       <div class="row q-col-gutter-sm q-mt-xs items-end">
         <div class="col-auto">
           <div class="text-caption text-grey-6">Mayor precio de compra</div>
@@ -87,33 +92,33 @@ const props = defineProps({
   destino: { type: String, default: '' },
   rango: { type: String, default: 'UltimoDia' },
   autoRefresh: { type: Boolean, default: true },
+  fallbackUltimaSemana: { type: Boolean, default: true },
 })
 
-const emit = defineEmits(['punto-seleccionado'])
+const emit = defineEmits(['punto-seleccionado', 'rango-fallback', 'rango-resuelto'])
 
 const authStore = useAuthStore()
 const lineRef = ref(null)
-const canvasWrapper = ref(null)
 
 const serie = ref([])
 const cargando = ref(false)
 const errorCarga = ref('')
 const puntoActual = ref(null)
+const rangoEfectivo = ref(props.rango)
 
 let intervalo = null
 
-// Colores sincronizados con el tema visual (mismos valores que app.css)
 const colorCompra = computed(() => (authStore.temaVisual === 'Oscuro' ? '#64b5f6' : '#1565c0'))
 const colorVenta = computed(() => (authStore.temaVisual === 'Oscuro' ? '#81c784' : '#2e7d32'))
 
 const chartData = computed(() => ({
-  labels: serie.value.map((p) => formatearEtiqueta(p.fechaHora, props.rango)),
+  labels: serie.value.map((p) => formatearEtiqueta(p.fechaHora, rangoEfectivo.value)),
   datasets: [
     {
       label: 'Mayor precio de compra',
-      data: serie.value.map((p) => p.mayorPrecioCompra),
+      data: serie.value.map((p) => normalizarNumero(p.mayorPrecioCompra)),
       borderColor: colorCompra.value,
-      backgroundColor: colorCompra.value + '22',
+      backgroundColor: `${colorCompra.value}22`,
       tension: 0.3,
       fill: false,
       pointRadius: 2,
@@ -121,9 +126,9 @@ const chartData = computed(() => ({
     },
     {
       label: 'Menor precio de venta',
-      data: serie.value.map((p) => p.menorPrecioVenta),
+      data: serie.value.map((p) => normalizarNumero(p.menorPrecioVenta)),
       borderColor: colorVenta.value,
-      backgroundColor: colorVenta.value + '22',
+      backgroundColor: `${colorVenta.value}22`,
       tension: 0.3,
       fill: false,
       pointRadius: 2,
@@ -137,6 +142,7 @@ const chartOptions = computed(() => {
   const tickColor = isDark ? '#b0bec5' : '#555555'
   const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'
   const textColor = isDark ? '#e0e0e0' : '#222222'
+  const esSemana = rangoEfectivo.value === 'UltimaSemana'
 
   return {
     responsive: true,
@@ -151,7 +157,10 @@ const chartOptions = computed(() => {
         mode: 'index',
         intersect: false,
         callbacks: {
-          title: (items) => items[0]?.label ?? '',
+          title: (items) => {
+            const index = items[0]?.dataIndex ?? 0
+            return serie.value[index]?.fechaHora ? formatearFechaCompleta(serie.value[index].fechaHora) : ''
+          },
           label: (ctx) => `${ctx.dataset.label}: ${formatearDecimal(ctx.parsed.y)}`,
         },
       },
@@ -159,7 +168,13 @@ const chartOptions = computed(() => {
     scales: {
       x: {
         title: { display: true, text: 'Tiempo', color: tickColor },
-        ticks: { color: tickColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+        ticks: {
+          color: tickColor,
+          maxRotation: esSemana ? 0 : 45,
+          minRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: esSemana ? 8 : 12,
+        },
         grid: { color: gridColor },
       },
       y: {
@@ -171,21 +186,77 @@ const chartOptions = computed(() => {
   }
 })
 
-// Actualiza colores cuando cambia el tema (Chart.js no los relee automáticamente)
 watch(
   () => authStore.temaVisual,
   () => {
     const chart = lineRef.value?.chart
     if (!chart) return
-    chart.data.datasets[0].borderColor = colorCompra.value
-    chart.data.datasets[0].backgroundColor = colorCompra.value + '22'
-    chart.data.datasets[1].borderColor = colorVenta.value
-    chart.data.datasets[1].backgroundColor = colorVenta.value + '22'
     chart.update()
   },
 )
 
-// Seguimiento del cursor: calcula el índice de dato más cercano en el eje X
+function normalizarPuntos(data) {
+  const puntos = data?.serie ?? data?.puntos ?? data?.datos ?? data?.registros ?? (Array.isArray(data) ? data : [])
+  return puntos.filter(
+    (p) =>
+      Number.isFinite(Number(p.mayorPrecioCompra)) ||
+      Number.isFinite(Number(p.menorPrecioVenta)) ||
+      Number.isFinite(Number(p.precio)),
+  )
+}
+
+async function obtenerSerie(rangoConsulta) {
+  const { data } = await getSerieHistorica(props.origen, props.destino, rangoConsulta)
+  return normalizarPuntos(data)
+}
+
+async function cargarSerie() {
+  if (!props.origen || !props.destino) return
+  cargando.value = true
+  errorCarga.value = ''
+
+  try {
+    let puntos = await obtenerSerie(props.rango)
+    let rangoUsado = props.rango
+
+    if (!puntos.length && props.rango === 'UltimoDia' && props.fallbackUltimaSemana) {
+      const puntosSemana = await obtenerSerie('UltimaSemana')
+      if (puntosSemana.length) {
+        puntos = puntosSemana
+        rangoUsado = 'UltimaSemana'
+        emit('rango-fallback', 'UltimaSemana')
+      }
+    }
+
+    rangoEfectivo.value = rangoUsado
+    emit('rango-resuelto', rangoUsado)
+    serie.value = puntos
+
+    const ultimo = serie.value.at(-1) ?? null
+    puntoActual.value = ultimo
+    emit('punto-seleccionado', ultimo)
+  } catch {
+    errorCarga.value = `No se pudo cargar la serie para ${props.origen}/${props.destino}.`
+    serie.value = []
+    puntoActual.value = null
+  } finally {
+    cargando.value = false
+  }
+}
+
+watch([() => props.origen, () => props.destino, () => props.rango], cargarSerie)
+
+onMounted(async () => {
+  await cargarSerie()
+  if (props.autoRefresh) {
+    intervalo = setInterval(cargarSerie, 30_000)
+  }
+})
+
+onUnmounted(() => {
+  if (intervalo) clearInterval(intervalo)
+})
+
 function onMouseMove(event) {
   const chart = lineRef.value?.chart
   if (!chart || !serie.value.length) return
@@ -211,54 +282,29 @@ function onMouseMove(event) {
 }
 
 function onMouseLeave() {
-  // Al salir del gráfico, muestra el punto más reciente
   const ultimo = serie.value.at(-1) ?? null
   puntoActual.value = ultimo
   emit('punto-seleccionado', ultimo)
 }
 
-async function cargarSerie() {
-  if (!props.origen || !props.destino) return
-  cargando.value = true
-  errorCarga.value = ''
-
-  try {
-    const { data } = await getSerieHistorica(props.origen, props.destino, props.rango)
-    // Campo real del backend: SerieHistoricaParResponseDto.Serie
-    serie.value = data.serie ?? data.puntos ?? data.datos ?? (Array.isArray(data) ? data : [])
-
-    if (serie.value.length > 0) {
-      puntoActual.value = serie.value.at(-1)
-      emit('punto-seleccionado', puntoActual.value)
-    }
-  } catch {
-    errorCarga.value = `No se pudo cargar la serie para ${props.origen}/${props.destino}.`
-    serie.value = []
-  } finally {
-    cargando.value = false
-  }
-}
-
-watch([() => props.origen, () => props.destino, () => props.rango], cargarSerie)
-
-onMounted(async () => {
-  await cargarSerie()
-  if (props.autoRefresh) {
-    intervalo = setInterval(cargarSerie, 30_000)
-  }
-})
-
-onUnmounted(() => {
-  if (intervalo) clearInterval(intervalo)
-})
-
-// ── helpers de formato ────────────────────────────────────────────────────────
-
 function formatearEtiqueta(fecha, rango) {
   const d = new Date(fecha)
-  if (rango === 'UltimoDia') return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  if (rango === 'UltimoAno' || rango === 'Total')
+
+  if (rango === 'UltimoDia') {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  if (rango === 'UltimaSemana') {
+    return [
+      d.toLocaleDateString([], { day: '2-digit', month: '2-digit' }),
+      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    ]
+  }
+
+  if (rango === 'UltimoAno' || rango === 'Total') {
     return d.toLocaleDateString([], { month: '2-digit', year: 'numeric' })
+  }
+
   return d.toLocaleDateString([], { day: '2-digit', month: '2-digit' })
 }
 
@@ -270,6 +316,11 @@ function formatearFechaCompleta(fecha) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function normalizarNumero(valor) {
+  if (valor == null || Number.isNaN(Number(valor))) return null
+  return Number(valor)
 }
 
 function formatearDecimal(valor) {

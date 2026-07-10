@@ -42,6 +42,7 @@
         :destino="monedaDestino"
         :rango="rango"
         :auto-refresh="true"
+        @rango-fallback="rango = $event"
       />
     </q-card>
 

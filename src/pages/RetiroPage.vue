@@ -1,70 +1,65 @@
 <template>
   <q-page class="q-pa-md">
     <div class="xc-page-head">
-      <span class="xc-section-kicker">
-        <q-icon name="north_east" size="14px" />
-        Retiro
-      </span>
+      <span class="xc-section-kicker"><q-icon name="north_east" size="14px" /> Retiro</span>
       <h1 class="xc-section-title">Retirar fondos</h1>
       <div class="xc-section-bar" aria-hidden="true" />
     </div>
 
     <q-card flat bordered class="q-pa-md xc-card-accent">
-      <div class="row q-col-gutter-md">
-        <div class="col-12 col-md-4">
-          <q-select
-            v-model="form.monedaId"
-            label="Moneda"
-            outlined
-            :options="monedaOptions"
-            emit-value
-            map-options
-            @update:model-value="touched.monedaId = true"
-          />
-          <div v-if="touched.monedaId && !form.monedaId" class="text-caption text-negative q-mt-xs">
-            Seleccione una moneda
+      <q-form ref="formRef" @submit.prevent="onConfirmarRetiro">
+        <div class="row q-col-gutter-md">
+          <div class="col-12 col-md-4">
+            <q-select
+              v-model="form.monedaId"
+              label="Moneda"
+              outlined
+              :options="monedaOptions"
+              emit-value
+              map-options
+              :rules="[(val) => validarRequerido(val, 'Seleccione una moneda')]"
+              @update:model-value="resumen = null"
+            />
+          </div>
+
+          <div class="col-12 col-md-4">
+            <q-select
+              v-model="form.metodoPagoId"
+              label="Método de cobro"
+              outlined
+              :options="metodoOptions"
+              emit-value
+              map-options
+              :rules="[(val) => validarRequerido(val, 'Seleccione un método de cobro')]"
+              @update:model-value="resumen = null"
+            />
+          </div>
+
+          <div class="col-12 col-md-4">
+            <q-input
+              v-model.number="form.monto"
+              type="number"
+              label="Monto a retirar"
+              outlined
+              :rules="[validarMontoRetiro]"
+              @update:model-value="resumen = null"
+            />
           </div>
         </div>
 
-        <div class="col-12 col-md-4">
-          <q-select
-            v-model="form.metodoPagoId"
-            label="Método de cobro"
-            outlined
-            :options="metodoOptions"
-            emit-value
-            map-options
-            @update:model-value="touched.metodoPagoId = true"
-          />
-          <div v-if="touched.metodoPagoId && !form.metodoPagoId" class="text-caption text-negative q-mt-xs">
-            Seleccione un método de cobro
-          </div>
-        </div>
+        <q-btn
+          type="submit"
+          class="q-mt-md"
+          color="primary"
+          label="Confirmar retiro"
+          :disable="!isFormValid"
+          :loading="calculando"
+        />
+      </q-form>
 
-        <div class="col-12 col-md-4">
-          <q-input
-            v-model.number="form.monto"
-            type="number"
-            label="Monto a retirar"
-            outlined
-            @update:model-value="touched.monto = true"
-          />
-          <div v-if="touched.monto && montoError" class="text-caption text-negative q-mt-xs">
-            {{ montoError }}
-          </div>
-        </div>
-      </div>
-
-      <q-btn
-        class="q-mt-md"
-        color="primary"
-        label="Confirmar retiro"
-        :disable="!isFormValid"
-        :loading="calculando"
-        @click="onConfirmarRetiro"
-      />
-
-      <div v-if="errorGeneral" class="text-caption text-negative q-mt-sm">{{ errorGeneral }}</div>
+      <q-banner v-if="errorGeneral" dense rounded class="xchang-banner xchang-banner--error q-mt-sm">
+        {{ errorGeneral }}
+      </q-banner>
     </q-card>
 
     <q-dialog v-model="showDialog" persistent>
@@ -99,20 +94,12 @@
             </q-item>
           </q-list>
 
-          <q-banner
-            v-if="resumen.comisionAplicada > 0"
-            dense
-            rounded
-            class="xchang-banner xchang-banner--warning q-mt-sm"
-          >
-            Se aplica una comisión de {{ resumen.comisionAplicada }} {{ resumen.codigoISO }} por el
-            método de cobro seleccionado.
+          <q-banner v-if="resumen.comisionAplicada > 0" dense rounded class="xchang-banner xchang-banner--warning q-mt-sm">
+            Se aplica una comisión de {{ resumen.comisionAplicada }} {{ resumen.codigoISO }} por el método de cobro seleccionado.
           </q-banner>
         </q-card-section>
 
-        <q-card-section v-if="errorDialog" class="text-negative">
-          {{ errorDialog }}
-        </q-card-section>
+        <q-card-section v-if="errorDialog" class="text-negative">{{ errorDialog }}</q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Cancelar" :disable="confirmando" @click="showDialog = false" />
@@ -131,56 +118,48 @@ import { getMonedas } from '@/services/monedas'
 import { getBilletera } from '@/services/billetera'
 import { getMetodosCobro, calcular, registrar } from '@/services/retiro'
 import { useBilleteraStore } from '@/stores/billetera'
+import { normalizarMensajeError, validarMonto, validarRequerido } from '@/utils/validaciones'
 
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
 const billeteraStore = useBilleteraStore()
 
+const formRef = ref(null)
 const monedaOptions = ref([])
 const metodoOptions = ref([])
 const saldos = ref([])
 const form = reactive({ monedaId: null, metodoPagoId: null, monto: null })
-const touched = reactive({ monedaId: false, metodoPagoId: false, monto: false })
 
 const calculando = ref(false)
 const confirmando = ref(false)
 const errorGeneral = ref('')
 const errorDialog = ref('')
-
 const resumen = ref(null)
 const showDialog = ref(false)
 
 const saldoDisponible = computed(() => {
   if (!form.monedaId) return null
   const s = saldos.value.find((x) => x.monedaId === form.monedaId)
-  return s ? s.saldoDisponible : null
+  return s ? Number(s.saldoDisponible) : 0
 })
 
-const monedaLabel = computed(() => {
-  const opt = monedaOptions.value.find((o) => o.value === form.monedaId)
-  return opt ? opt.label : ''
-})
+const monedaLabel = computed(() => monedaOptions.value.find((o) => o.value === form.monedaId)?.label || '')
+const metodoLabel = computed(() => metodoOptions.value.find((o) => o.value === form.metodoPagoId)?.label || '')
 
-const metodoLabel = computed(() => {
-  const opt = metodoOptions.value.find((o) => o.value === form.metodoPagoId)
-  return opt ? opt.label : ''
-})
+function validarMontoRetiro(valor) {
+  const base = validarMonto(valor)
+  if (base !== true) return base
+  if (saldoDisponible.value !== null && Number(valor) > saldoDisponible.value) return 'Saldo insuficiente'
+  return true
+}
 
-const montoError = computed(() => {
-  const m = form.monto
-  if (m === null || m === undefined || m === '' || isNaN(m)) return null
-  if (m <= 0) return 'El monto debe ser mayor a 0'
-  if (m > 1_000_000) return 'Monto máximo excedido'
-  if (saldoDisponible.value !== null && m > saldoDisponible.value) return 'Saldo insuficiente'
-  return null
-})
-
-const isFormValid = computed(() => {
-  const m = form.monto
-  const validMonto = m !== null && m !== undefined && m !== '' && !isNaN(m)
-  return !!form.monedaId && !!form.metodoPagoId && validMonto && !montoError.value
-})
+const isFormValid = computed(
+  () =>
+    validarRequerido(form.monedaId, 'Seleccione una moneda') === true &&
+    validarRequerido(form.metodoPagoId, 'Seleccione un método de cobro') === true &&
+    validarMontoRetiro(form.monto) === true,
+)
 
 onMounted(async () => {
   const [{ data: monedas }, { data: metodos }, { data: billetera }] = await Promise.all([
@@ -199,19 +178,18 @@ onMounted(async () => {
 })
 
 async function onConfirmarRetiro() {
-  touched.monedaId = true
-  touched.metodoPagoId = true
-  touched.monto = true
-  if (!isFormValid.value) return
+  const valido = await formRef.value?.validate()
+  if (!valido || !isFormValid.value) return
+
   errorGeneral.value = ''
   resumen.value = null
   calculando.value = true
   try {
-    const { data } = await calcular(form)
+    const { data } = await calcular({ ...form })
     resumen.value = data
     showDialog.value = true
   } catch (error) {
-    errorGeneral.value = error.response?.data?.mensaje || 'No se pudo calcular el retiro.'
+    errorGeneral.value = normalizarMensajeError(error, 'Monto inválido')
   } finally {
     calculando.value = false
   }
@@ -221,13 +199,13 @@ async function onConfirmar() {
   confirmando.value = true
   errorDialog.value = ''
   try {
-    await registrar(form)
+    await registrar({ ...form })
     await billeteraStore.refrescar()
     showDialog.value = false
     $q.notify({ type: 'positive', message: 'Retiro realizado. Se enviará el comprobante a tu correo electrónico.' })
     router.push({ name: 'billetera' })
   } catch (error) {
-    errorDialog.value = error.response?.data?.mensaje || 'No se pudo registrar el retiro.'
+    errorDialog.value = normalizarMensajeError(error, 'No se pudo registrar el retiro.')
   } finally {
     confirmando.value = false
   }

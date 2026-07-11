@@ -26,11 +26,6 @@ const routes = [
         component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
       },
       {
-        path: '/restablecer-password',
-        name: 'reset-password',
-        component: () => import('@/pages/auth/ResetPasswordPage.vue'),
-      },
-      {
         path: '/verificar-correo',
         name: 'verify-email',
         component: () => import('@/pages/auth/VerifyEmailPage.vue'),
@@ -179,6 +174,17 @@ const routes = [
         path: 'reportes',
         name: 'admin-reportes',
         component: () => import('@/pages/admin/AdminReportesPage.vue'),
+      },
+    ],
+  },
+  {
+    path: '/restablecer-password',
+    component: () => import('@/layouts/AuthLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'reset-password',
+        component: () => import('@/pages/auth/ResetPasswordPage.vue'),
       },
     ],
   },

@@ -6,7 +6,9 @@ import { useBilleteraStore } from '@/stores/billetera'
 
 const TOKEN_KEY = 'xchang_token'
 const USER_KEY = 'xchang_user'
-const THEME_KEY = 'xchang_tema_visual'
+const THEME_KEY = 'xchang_tema_visual' // localStorage: preferencia visual, no es sensible
+
+const session = sessionStorage
 
 function normalizarTema(tema) {
   return tema === 'Claro' ? 'Claro' : 'Oscuro'
@@ -14,7 +16,7 @@ function normalizarTema(tema) {
 
 function obtenerUsuarioLocal() {
   try {
-    return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    return JSON.parse(session.getItem(USER_KEY) || 'null')
   } catch {
     return null
   }
@@ -24,7 +26,7 @@ const usuarioLocal = obtenerUsuarioLocal()
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: localStorage.getItem(TOKEN_KEY) || null,
+    token: session.getItem(TOKEN_KEY) || null,
     user: usuarioLocal,
     temaVisual: normalizarTema(
       usuarioLocal?.temaVisual || localStorage.getItem(THEME_KEY) || 'Oscuro',
@@ -59,8 +61,8 @@ export const useAuthStore = defineStore('auth', {
     setSession(authResponse) {
       this.token = authResponse.token
       this.user = authResponse.usuario
-      localStorage.setItem(TOKEN_KEY, this.token)
-      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
+      session.setItem(TOKEN_KEY, this.token)
+      session.setItem(USER_KEY, JSON.stringify(this.user))
       this.applyTheme(this.user?.temaVisual || 'Oscuro')
     },
 
@@ -99,8 +101,8 @@ export const useAuthStore = defineStore('auth', {
     clearSession() {
       this.token = null
       this.user = null
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(USER_KEY)
+      session.removeItem(TOKEN_KEY)
+      session.removeItem(USER_KEY)
       this.applyTheme(localStorage.getItem(THEME_KEY) || 'Oscuro')
       useBilleteraStore().limpiar()
     },
@@ -108,7 +110,7 @@ export const useAuthStore = defineStore('auth', {
     async fetchProfile() {
       const { data } = await authService.getMe()
       this.user = { ...this.user, ...data }
-      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
+      session.setItem(USER_KEY, JSON.stringify(this.user))
       if (data?.temaVisual) this.applyTheme(data.temaVisual)
       return data
     },
@@ -121,7 +123,7 @@ export const useAuthStore = defineStore('auth', {
       const { data } = await configuracionService.obtenerTemaVisual()
       const tema = data.temaVisual || 'Oscuro'
       this.user = { ...this.user, temaVisual: tema }
-      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
+      session.setItem(USER_KEY, JSON.stringify(this.user))
       this.applyTheme(tema)
       return data
     },
@@ -135,7 +137,7 @@ export const useAuthStore = defineStore('auth', {
       const { data } = await configuracionService.actualizarTemaVisual(tema)
       const temaActualizado = data.temaVisual || tema
       this.user = { ...this.user, temaVisual: temaActualizado }
-      localStorage.setItem(USER_KEY, JSON.stringify(this.user))
+      session.setItem(USER_KEY, JSON.stringify(this.user))
       this.applyTheme(temaActualizado)
       return data
     },

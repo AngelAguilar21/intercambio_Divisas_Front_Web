@@ -137,7 +137,7 @@ async function cargar() {
 
 function formatNum(val) {
   if (val == null) return '-'
-  return Number(val).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 8 })
+  return Number(val).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function formatFecha(val) {

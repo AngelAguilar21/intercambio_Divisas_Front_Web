@@ -131,6 +131,18 @@
                 <q-item-section>Ahorro estimado</q-item-section>
                 <q-item-section side class="xc-figure text-positive text-weight-bold">{{ formatNum(ruta.ahorroEstimado) }}</q-item-section>
               </q-item>
+              <q-item v-if="ruta.precioMinimo != null">
+                <q-item-section>Precio mínimo de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioMinimo) }}</q-item-section>
+              </q-item>
+              <q-item v-if="ruta.precioMaximo != null">
+                <q-item-section>Precio máximo de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioMaximo) }}</q-item-section>
+              </q-item>
+              <q-item v-if="ruta.precioPromedio != null">
+                <q-item-section>Precio promedio de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioPromedio) }}</q-item-section>
+              </q-item>
             </q-list>
             <q-btn
               color="primary"
@@ -173,6 +185,14 @@
               <q-item-section side class="xc-figure text-weight-bold">{{ formatNum(resumen.totalEstimado) }} {{ monedaOrigen }}</q-item-section>
             </q-item>
           </q-list>
+          <q-banner
+            v-if="dialogWarning"
+            dense
+            rounded
+            class="xchang-banner xchang-banner--warning q-mt-sm"
+          >
+            {{ dialogWarning }}
+          </q-banner>
           <q-banner
             v-if="!resumen.liquidezSuficiente"
             dense rounded
@@ -226,6 +246,7 @@ const confirmando = ref(false)
 const errorMsg = ref('')
 const exitoMsg = ref('')
 const dialogVisible = ref(false)
+const dialogWarning = ref('')
 const busquedaRutaIdActiva = ref(null)
 
 const cantidadError = computed(() => {
@@ -252,17 +273,24 @@ async function onCambioCantidad() {
   ruta.value = null
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   if (cantidad.value > 0) {
     await cargarResumen()
     await cargarTiempoBusqueda()
   }
 }
 
-async function cargarResumen() {
+async function cargarResumen(cantidadObjetivo = cantidad.value) {
   try {
-    const { data } = await getResumen({ parMonedaId: props.parMonedaId, cantidadAObtener: cantidad.value })
+    const { data } = await getResumen({
+      parMonedaId: props.parMonedaId,
+      cantidadAObtener: cantidadObjetivo,
+    })
     resumen.value = data
-  } catch { /* silencioso, el error se mostrará al confirmar */ }
+    return data
+  } catch {
+    return null
+  }
 }
 
 async function cargarTiempoBusqueda() {
@@ -275,23 +303,62 @@ async function cargarTiempoBusqueda() {
 function onComprar() {
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   dialogVisible.value = true
 }
 
 async function onConfirmarNormal() {
-  dialogVisible.value = false
+  if (!resumen.value) return
+
   confirmando.value = true
+  errorMsg.value = ''
+  dialogWarning.value = ''
+
+  const resumenAceptado = { ...resumen.value }
+  const cantidadAConfirmar = resumenAceptado.liquidezSuficiente
+    ? Number(cantidad.value)
+    : Number(resumenAceptado.cantidadEjecutable || 0)
+  const totalMaximoAceptado = Number(resumenAceptado.totalEstimado || 0)
+
   try {
+    const resumenActual = await cargarResumen(cantidadAConfirmar)
+    emit('operacion-completada')
+
+    if (!resumenActual || Number(resumenActual.cantidadEjecutable || 0) <= 0) {
+      dialogWarning.value = 'Liquidez insuficiente. El libro de órdenes fue actualizado; revisa el nuevo resumen antes de confirmar.'
+      return
+    }
+
+    if (!resumenActual.saldoSuficiente) {
+      dialogWarning.value = 'Saldo insuficiente.'
+      return
+    }
+
+    if (!resumenActual.liquidezSuficiente) {
+      dialogWarning.value = 'Liquidez insuficiente. El libro de órdenes cambió; revisa la cantidad disponible antes de confirmar.'
+      return
+    }
+
+    const totalActual = Number(resumenActual.totalEstimado || 0)
+    if (totalActual > totalMaximoAceptado + 0.000001) {
+      dialogWarning.value = 'El precio aumentó respecto al resumen mostrado. Se bloqueó la compra para que confirmes nuevamente con el nuevo precio.'
+      return
+    }
+
     await confirmar({
       parMonedaId: props.parMonedaId,
-      cantidadAObtener: cantidad.value,
-      comprarCantidadDisponible: !resumen.value?.liquidezSuficiente,
+      cantidadAObtener: cantidadAConfirmar,
+      comprarCantidadDisponible: false,
     })
-    exitoMsg.value = 'Compra inmediata ejecutada correctamente.'
+
+    dialogVisible.value = false
     limpiar()
+    exitoMsg.value = 'Compra inmediata ejecutada correctamente.'
     emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la compra.')
+    await cargarResumen(cantidadAConfirmar)
+    emit('operacion-completada')
   } finally {
     confirmando.value = false
   }
@@ -310,8 +377,10 @@ async function onBuscar() {
     })
     ruta.value = data
     busquedaRutaIdActiva.value = data.busquedaRutaId
+    emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo buscar la ruta.')
+    emit('operacion-completada')
   } finally {
     buscando.value = false
   }
@@ -327,15 +396,42 @@ async function onCancelarBusqueda() {
 
 async function onConfirmarRuta() {
   if (!ruta.value?.busquedaRutaId) return
+
   confirmando.value = true
   errorMsg.value = ''
+
+  const rutaAceptada = { ...ruta.value }
+  const totalMaximoAceptado = Number(rutaAceptada.totalRutaEncontrada || 0)
+
   try {
-    await confirmarRuta({ busquedaRutaId: ruta.value.busquedaRutaId })
-    exitoMsg.value = 'Compra por mejor ruta ejecutada correctamente.'
+    const { data: rutaActual } = await buscarRuta({
+      parMonedaId: props.parMonedaId,
+      cantidadAObtener: cantidad.value,
+      cantidadMaximaSaltos: maxSaltos.value,
+    })
+
+    ruta.value = rutaActual
+    busquedaRutaIdActiva.value = rutaActual.busquedaRutaId
+    emit('operacion-completada')
+
+    if (!rutaActual.rutaEncontrada) {
+      errorMsg.value = rutaActual.mensaje || 'No se encontró una ruta más barata.'
+      return
+    }
+
+    const totalActual = Number(rutaActual.totalRutaEncontrada || 0)
+    if (totalActual > totalMaximoAceptado + 0.000001) {
+      errorMsg.value = 'La ruta cambió y ahora es más cara. Se bloqueó la compra para que revises el nuevo resultado antes de confirmar.'
+      return
+    }
+
+    await confirmarRuta({ busquedaRutaId: rutaActual.busquedaRutaId })
     limpiar()
+    exitoMsg.value = 'Compra por mejor ruta ejecutada correctamente.'
     emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la ruta.')
+    emit('operacion-completada')
   } finally {
     confirmando.value = false
   }
@@ -347,6 +443,7 @@ function limpiar() {
   ruta.value = null
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   busquedaRutaIdActiva.value = null
 }
 

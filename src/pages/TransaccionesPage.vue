@@ -473,15 +473,33 @@ function esCancelable(estado) {
   return estado === 'Activa' || estado === 'Parcialmente ejecutada'
 }
 
+function obtenerReferenciaCancelacion(tipoOperacion, row) {
+  const valor = tipoOperacion === 'Orden de compra'
+    ? row.ordenCompraId ?? row.id ?? row.referenciaId ?? row.ordenId
+    : row.ofertaVentaId ?? row.id ?? row.referenciaId ?? row.ofertaId
+
+  return Number(valor)
+}
+
 function abrirCancelacion(tipoOperacion, row) {
+  const referenciaId = obtenerReferenciaCancelacion(tipoOperacion, row)
+
+  if (!Number.isFinite(referenciaId) || referenciaId <= 0) {
+    Notify.create({
+      type: 'negative',
+      message: 'No se pudo identificar la operación a cancelar.',
+    })
+    return
+  }
+
   cancelacion.tipoOperacion = tipoOperacion
-  cancelacion.referenciaId =
-    tipoOperacion === 'Orden de compra' ? row.ordenCompraId : row.ofertaVentaId
+  cancelacion.referenciaId = referenciaId
   dialogAbierto.value = true
 }
 
 function onCancelado() {
   Notify.create({ type: 'positive', message: 'Operación cancelada correctamente.' })
+  dialogAbierto.value = false
   cancelacion.tipoOperacion = ''
   cancelacion.referenciaId = null
   cargar()

@@ -9,7 +9,7 @@
           v-model.number="cantidad"
           type="number"
           label="Cantidad a vender"
-          :suffix="monedaOrigen"
+          :suffix="monedaDestino"
           outlined
           dense
           class="q-mb-xs"
@@ -18,12 +18,12 @@
           @update:model-value="onCambioCantidad"
         />
         <div v-if="resumen && !resumen.saldoSuficiente" class="text-caption text-negative q-mb-xs">
-          Saldo insuficiente
+          Saldo insuficiente en {{ monedaDestino }}
         </div>
 
         <div v-if="resumen && resumen.totalEstimadoARecibir > 0" class="xchang-banner xchang-banner--info q-pa-sm q-mb-sm rounded-borders text-body2">
           Total estimado a recibir:
-          <span class="xc-figure text-weight-bold"> {{ formatNum(resumen.totalEstimadoARecibir) }} {{ monedaDestino }}</span>
+          <span class="xc-figure text-weight-bold"> {{ formatNum(resumen.totalEstimadoARecibir) }} {{ monedaOrigen }}</span>
         </div>
 
         <div class="row q-gutter-sm">
@@ -125,12 +125,25 @@
             <q-list dense class="q-mt-xs">
               <q-item dense>
                 <q-item-section>Total a recibir por ruta</q-item-section>
-                <q-item-section side class="xc-figure">{{ formatNum(ruta.totalRutaEncontrada) }}</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.totalRutaEncontrada) }} {{ monedaOrigen }}</q-item-section>
               </q-item>
               <q-item dense>
                 <q-item-section>Ganancia estimada</q-item-section>
-                <q-item-section side class="xc-figure text-positive text-weight-bold">{{ formatNum(ruta.gananciaEstimada) }}</q-item-section>
+                <q-item-section side class="xc-figure text-positive text-weight-bold">{{ formatNum(ruta.gananciaEstimada) }} {{ monedaOrigen }}</q-item-section>
               </q-item>
+              <q-item v-if="ruta.precioMinimo != null">
+                <q-item-section>Precio mínimo de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioMinimo) }}</q-item-section>
+              </q-item>
+              <q-item v-if="ruta.precioMaximo != null">
+                <q-item-section>Precio máximo de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioMaximo) }}</q-item-section>
+              </q-item>
+              <q-item v-if="ruta.precioPromedio != null">
+                <q-item-section>Precio promedio de ruta</q-item-section>
+                <q-item-section side class="xc-figure">{{ formatNum(ruta.precioPromedio) }}</q-item-section>
+              </q-item>
+
             </q-list>
             <q-btn
               color="primary"
@@ -154,7 +167,7 @@
           <q-list dense>
             <q-item>
               <q-item-section>Cantidad a vender</q-item-section>
-              <q-item-section side class="xc-figure">{{ formatNum(resumen.cantidadEjecutable) }} {{ monedaOrigen }}</q-item-section>
+              <q-item-section side class="xc-figure">{{ formatNum(resumen.cantidadEjecutable) }} {{ monedaDestino }}</q-item-section>
             </q-item>
             <q-item v-if="resumen.precioMinimoCompra != null">
               <q-item-section>Precio mínimo de compra</q-item-section>
@@ -170,15 +183,23 @@
             </q-item>
             <q-item>
               <q-item-section>Total estimado a recibir</q-item-section>
-              <q-item-section side class="xc-figure text-weight-bold">{{ formatNum(resumen.totalEstimadoARecibir) }} {{ monedaDestino }}</q-item-section>
+              <q-item-section side class="xc-figure text-weight-bold">{{ formatNum(resumen.totalEstimadoARecibir) }} {{ monedaOrigen }}</q-item-section>
             </q-item>
           </q-list>
+          <q-banner
+            v-if="dialogWarning"
+            dense
+            rounded
+            class="xchang-banner xchang-banner--warning q-mt-sm"
+          >
+            {{ dialogWarning }}
+          </q-banner>
           <q-banner
             v-if="!resumen.liquidezSuficiente"
             dense rounded
             class="xchang-banner xchang-banner--warning q-mt-sm"
           >
-            Cantidad solicitada: {{ formatNum(resumen.cantidadSolicitada) }} — disponible: {{ formatNum(resumen.cantidadDisponible) }} {{ monedaOrigen }}.
+            Cantidad solicitada: {{ formatNum(resumen.cantidadSolicitada) }} — disponible: {{ formatNum(resumen.cantidadDisponible) }} {{ monedaDestino }}.
             Solo se venderá la cantidad disponible.
           </q-banner>
         </q-card-section>
@@ -226,6 +247,7 @@ const confirmando = ref(false)
 const errorMsg = ref('')
 const exitoMsg = ref('')
 const dialogVisible = ref(false)
+const dialogWarning = ref('')
 const busquedaRutaIdActiva = ref(null)
 
 const cantidadError = computed(() => {
@@ -252,17 +274,24 @@ async function onCambioCantidad() {
   ruta.value = null
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   if (cantidad.value > 0) {
     await cargarResumen()
     await cargarTiempoBusqueda()
   }
 }
 
-async function cargarResumen() {
+async function cargarResumen(cantidadObjetivo = cantidad.value) {
   try {
-    const { data } = await getResumen({ parMonedaId: props.parMonedaId, cantidadAVender: cantidad.value })
+    const { data } = await getResumen({
+      parMonedaId: props.parMonedaId,
+      cantidadAVender: cantidadObjetivo,
+    })
     resumen.value = data
-  } catch { /* silencioso */ }
+    return data
+  } catch {
+    return null
+  }
 }
 
 async function cargarTiempoBusqueda() {
@@ -275,23 +304,62 @@ async function cargarTiempoBusqueda() {
 function onVender() {
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   dialogVisible.value = true
 }
 
 async function onConfirmarNormal() {
-  dialogVisible.value = false
+  if (!resumen.value) return
+
   confirmando.value = true
+  errorMsg.value = ''
+  dialogWarning.value = ''
+
+  const resumenAceptado = { ...resumen.value }
+  const cantidadAConfirmar = resumenAceptado.liquidezSuficiente
+    ? Number(cantidad.value)
+    : Number(resumenAceptado.cantidadEjecutable || 0)
+  const totalMinimoAceptado = Number(resumenAceptado.totalEstimadoARecibir || 0)
+
   try {
+    const resumenActual = await cargarResumen(cantidadAConfirmar)
+    emit('operacion-completada')
+
+    if (!resumenActual || Number(resumenActual.cantidadEjecutable || 0) <= 0) {
+      dialogWarning.value = 'Liquidez insuficiente. El libro de órdenes fue actualizado; revisa el nuevo resumen antes de confirmar.'
+      return
+    }
+
+    if (!resumenActual.saldoSuficiente) {
+      dialogWarning.value = `Saldo insuficiente en ${props.monedaDestino}.`
+      return
+    }
+
+    if (!resumenActual.liquidezSuficiente) {
+      dialogWarning.value = 'Liquidez insuficiente. El libro de órdenes cambió; revisa la cantidad disponible antes de confirmar.'
+      return
+    }
+
+    const totalActual = Number(resumenActual.totalEstimadoARecibir || 0)
+    if (totalActual + 0.000001 < totalMinimoAceptado) {
+      dialogWarning.value = 'El precio bajó respecto al resumen mostrado. Se bloqueó la venta para que confirmes nuevamente con el nuevo precio.'
+      return
+    }
+
     await confirmar({
       parMonedaId: props.parMonedaId,
-      cantidadAVender: cantidad.value,
-      venderCantidadDisponible: !resumen.value?.liquidezSuficiente,
+      cantidadAVender: cantidadAConfirmar,
+      venderCantidadDisponible: false,
     })
-    exitoMsg.value = 'Venta inmediata ejecutada correctamente.'
+
+    dialogVisible.value = false
     limpiar()
+    exitoMsg.value = 'Venta inmediata ejecutada correctamente.'
     emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la venta.')
+    await cargarResumen(cantidadAConfirmar)
+    emit('operacion-completada')
   } finally {
     confirmando.value = false
   }
@@ -310,8 +378,10 @@ async function onBuscar() {
     })
     ruta.value = data
     busquedaRutaIdActiva.value = data.busquedaRutaId
+    emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo buscar la ruta.')
+    emit('operacion-completada')
   } finally {
     buscando.value = false
   }
@@ -327,15 +397,42 @@ async function onCancelarBusqueda() {
 
 async function onConfirmarRuta() {
   if (!ruta.value?.busquedaRutaId) return
+
   confirmando.value = true
   errorMsg.value = ''
+
+  const rutaAceptada = { ...ruta.value }
+  const totalMinimoAceptado = Number(rutaAceptada.totalRutaEncontrada || 0)
+
   try {
-    await confirmarRuta({ busquedaRutaId: ruta.value.busquedaRutaId })
-    exitoMsg.value = 'Venta por mejor ruta ejecutada correctamente.'
+    const { data: rutaActual } = await buscarRuta({
+      parMonedaId: props.parMonedaId,
+      cantidadAVender: cantidad.value,
+      cantidadMaximaSaltos: maxSaltos.value,
+    })
+
+    ruta.value = rutaActual
+    busquedaRutaIdActiva.value = rutaActual.busquedaRutaId
+    emit('operacion-completada')
+
+    if (!rutaActual.rutaEncontrada) {
+      errorMsg.value = rutaActual.mensaje || 'No se encontró una ruta más rentable.'
+      return
+    }
+
+    const totalActual = Number(rutaActual.totalRutaEncontrada || 0)
+    if (totalActual + 0.000001 < totalMinimoAceptado) {
+      errorMsg.value = 'La ruta cambió y ahora es menos rentable. Se bloqueó la venta para que revises el nuevo resultado antes de confirmar.'
+      return
+    }
+
+    await confirmarRuta({ busquedaRutaId: rutaActual.busquedaRutaId })
     limpiar()
+    exitoMsg.value = 'Venta por mejor ruta ejecutada correctamente.'
     emit('operacion-completada')
   } catch (e) {
     errorMsg.value = normalizarMensajeError(e, 'No se pudo confirmar la ruta.')
+    emit('operacion-completada')
   } finally {
     confirmando.value = false
   }
@@ -347,6 +444,7 @@ function limpiar() {
   ruta.value = null
   errorMsg.value = ''
   exitoMsg.value = ''
+  dialogWarning.value = ''
   busquedaRutaIdActiva.value = null
 }
 

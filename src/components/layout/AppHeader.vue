@@ -45,7 +45,7 @@
               v-for="n in notifStore.items"
               :key="n.notificacionUsuarioId"
               clickable
-              :class="{ 'bg-blue-1': !n.leida }"
+              :class="{ 'xchang-notification-unread': !n.leida }"
               @click="notifStore.marcarLeida(n.notificacionUsuarioId)"
             >
               <q-item-section>
@@ -172,5 +172,9 @@ async function onLogout() {
   background: var(--xchang-surface);
   color: var(--xchang-page-text);
   box-shadow: var(--xchang-shadow-sm);
+}
+
+.xchang-notification-unread {
+  background: color-mix(in srgb, var(--q-primary) 14%, transparent);
 }
 </style>

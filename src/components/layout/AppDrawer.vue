@@ -30,16 +30,18 @@
         <q-item-label header>Administrador</q-item-label>
 
         <q-item
+          v-for="link in adminLinks"
+          :key="link.key"
           v-ripple
           clickable
           class="xchang-nav-item"
-          :class="{ 'xchang-nav-active': route.name === 'admin-dashboard' }"
-          :to="{ name: 'admin-dashboard' }"
+          :class="{ 'xchang-nav-active': esActivo(link) }"
+          :to="{ name: link.name }"
         >
           <q-item-section avatar>
-            <q-icon name="admin_panel_settings" />
+            <q-icon :name="link.icon" />
           </q-item-section>
-          <q-item-section>Administración</q-item-section>
+          <q-item-section>{{ link.label }}</q-item-section>
         </q-item>
       </template>
     </q-list>
@@ -90,6 +92,30 @@ const navLinks = computed(() => {
     { key: 'logout', action: 'logout', label: 'Cerrar sesión', icon: 'logout' },
   ]
 })
+
+const adminLinks = [
+  {
+    key: 'admin-dashboard',
+    name: 'admin-dashboard',
+    label: 'Administración',
+    icon: 'admin_panel_settings',
+    matches: ['admin-dashboard'],
+  },
+  {
+    key: 'admin-usuarios',
+    name: 'admin-usuarios',
+    label: 'Gestión de usuarios',
+    icon: 'manage_accounts',
+    matches: ['admin-usuarios'],
+  },
+  {
+    key: 'admin-auditoria',
+    name: 'admin-auditoria',
+    label: 'Log de auditoría',
+    icon: 'fact_check',
+    matches: ['admin-auditoria'],
+  },
+]
 
 function esActivo(link) {
   if (!link.name) return false

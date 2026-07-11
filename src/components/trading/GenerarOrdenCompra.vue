@@ -2,6 +2,10 @@
   <q-card flat bordered class="q-pa-md">
     <div class="text-subtitle1 text-weight-medium q-mb-md">Generar orden de compra</div>
 
+    <q-banner v-if="estaRestringido" dense rounded class="xchang-banner xchang-banner--error q-mb-sm">
+      Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.
+    </q-banner>
+
     <q-input
       v-model.number="cantidad"
       type="number"
@@ -49,7 +53,7 @@
       unelevated
       class="full-width"
       :loading="enviando"
-      :disable="!formularioValido"
+      :disable="estaRestringido || !formularioValido"
       @click="onEnviar"
     />
 
@@ -114,6 +118,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { normalizarMensajeError } from '@/utils/validaciones'
+import { useAuthStore } from '@/stores/auth'
 import { getResumenOrden, crearOrden } from '@/services/mercado'
 
 const props = defineProps({
@@ -124,6 +129,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['operacion-completada'])
+const authStore = useAuthStore()
 
 const cantidad = ref(null)
 const precioUnitario = ref(null)
@@ -133,6 +139,7 @@ const exitoMsg = ref('')
 const resumen = ref(null)
 const dialogVisible = ref(false)
 const saldoInsuficiente = ref(false)
+const estaRestringido = computed(() => authStore.isRestricted)
 
 const cantidadError = computed(() => {
   if (cantidad.value !== null && cantidad.value <= 0) return 'La cantidad debe ser mayor a 0'
@@ -177,6 +184,10 @@ function onCambioCantidad() {
 }
 
 async function onEnviar() {
+  if (estaRestringido.value) {
+    errorMsg.value = 'Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.'
+    return
+  }
   if (!formularioValido.value) return
   errorMsg.value = ''
   exitoMsg.value = ''

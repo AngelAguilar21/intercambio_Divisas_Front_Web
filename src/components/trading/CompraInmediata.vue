@@ -2,6 +2,10 @@
   <q-card flat bordered class="q-pa-md">
     <div class="text-subtitle1 text-weight-medium q-mb-md">Compra inmediata</div>
 
+    <q-banner v-if="estaRestringido" dense rounded class="xchang-banner xchang-banner--error q-mb-sm">
+      Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.
+    </q-banner>
+
     <div class="row q-col-gutter-md">
       <!-- Columna izquierda: cantidad + botón -->
       <div class="col-12 col-sm-6">
@@ -33,7 +37,7 @@
             unelevated
             size="sm"
             :loading="confirmando"
-            :disable="!puedeComprar"
+            :disable="estaRestringido || !puedeComprar"
             @click="onComprar"
           />
           <q-btn
@@ -87,7 +91,7 @@
           unelevated
           size="sm"
           class="full-width"
-          :disable="!puedeBuscar"
+          :disable="estaRestringido || !puedeBuscar"
           @click="onBuscar"
         />
         <q-btn
@@ -219,6 +223,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { normalizarMensajeError } from '@/utils/validaciones'
+import { useAuthStore } from '@/stores/auth'
 import {
   getResumen,
   confirmar,
@@ -235,6 +240,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['operacion-completada'])
+const authStore = useAuthStore()
 
 const cantidad = ref(null)
 const maxSaltos = ref(1)
@@ -248,6 +254,7 @@ const exitoMsg = ref('')
 const dialogVisible = ref(false)
 const dialogWarning = ref('')
 const busquedaRutaIdActiva = ref(null)
+const estaRestringido = computed(() => authStore.isRestricted)
 
 const cantidadError = computed(() => {
   if (cantidad.value !== null && cantidad.value <= 0) return 'La cantidad debe ser mayor a 0'
@@ -301,6 +308,10 @@ async function cargarTiempoBusqueda() {
 }
 
 function onComprar() {
+  if (estaRestringido.value) {
+    errorMsg.value = 'Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.'
+    return
+  }
   errorMsg.value = ''
   exitoMsg.value = ''
   dialogWarning.value = ''
@@ -365,6 +376,10 @@ async function onConfirmarNormal() {
 }
 
 async function onBuscar() {
+  if (estaRestringido.value) {
+    errorMsg.value = 'Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.'
+    return
+  }
   ruta.value = null
   buscando.value = true
   errorMsg.value = ''
@@ -395,6 +410,10 @@ async function onCancelarBusqueda() {
 }
 
 async function onConfirmarRuta() {
+  if (estaRestringido.value) {
+    errorMsg.value = 'Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.'
+    return
+  }
   if (!ruta.value?.busquedaRutaId) return
 
   confirmando.value = true

@@ -38,22 +38,26 @@
         :rules="[(val) => validarRequerido(val, 'Seleccione un país')]"
       />
 
-      <q-input
-        v-model="form.password"
-        label="Contraseña"
-        outlined
-        stack-label
-        :type="showPassword ? 'text' : 'password'"
-        :rules="[(val) => validarPassword(val, { exigirComplejidad: true })]"
-      >
-        <template #append>
-          <q-icon
-            :name="showPassword ? 'visibility_off' : 'visibility'"
-            class="cursor-pointer"
-            @click="showPassword = !showPassword"
-          />
-        </template>
-      </q-input>
+      <div>
+        <q-input
+          v-model="form.password"
+          label="Contraseña"
+          outlined
+          stack-label
+          :type="showPassword ? 'text' : 'password'"
+          hide-bottom-space
+          :rules="[(val) => validarPassword(val, { exigirComplejidad: true }) === true]"
+        >
+          <template #append>
+            <q-icon
+              :name="showPassword ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="showPassword = !showPassword"
+            />
+          </template>
+        </q-input>
+        <PasswordRequisitos :password="form.password" class="q-mt-sm" />
+      </div>
 
       <q-input
         v-model="form.confirmarPassword"
@@ -91,6 +95,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getPaises } from '@/services/paises'
+import PasswordRequisitos from '@/components/common/PasswordRequisitos.vue'
 import {
   normalizarMensajeError,
   validarConfirmarPassword,

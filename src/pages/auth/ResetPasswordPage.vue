@@ -9,23 +9,26 @@
     </template>
 
     <q-form v-else class="q-gutter-md" @submit.prevent="onSubmit">
-      <q-input
-        v-model="form.nuevaPassword"
-        name="nuevaPassword"
-        label="Nueva contraseña"
-        outlined
-        :type="showPassword ? 'text' : 'password'"
-        hint="Mínimo 8 caracteres, una mayúscula, un número y un carácter especial"
-        :rules="[(val) => passwordPattern.test(val) || 'No cumple los requisitos de seguridad']"
-      >
-        <template #append>
-          <q-icon
-            :name="showPassword ? 'visibility_off' : 'visibility'"
-            class="cursor-pointer"
-            @click="showPassword = !showPassword"
-          />
-        </template>
-      </q-input>
+      <div>
+        <q-input
+          v-model="form.nuevaPassword"
+          name="nuevaPassword"
+          label="Nueva contraseña"
+          outlined
+          :type="showPassword ? 'text' : 'password'"
+          hide-bottom-space
+          :rules="[(val) => passwordPattern.test(val)]"
+        >
+          <template #append>
+            <q-icon
+              :name="showPassword ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="showPassword = !showPassword"
+            />
+          </template>
+        </q-input>
+        <PasswordRequisitos :password="form.nuevaPassword" class="q-mt-sm" />
+      </div>
 
       <q-input
         v-model="form.confirmarPassword"
@@ -65,6 +68,7 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { resetPassword } from '@/services/auth'
+import PasswordRequisitos from '@/components/common/PasswordRequisitos.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -44,6 +44,10 @@ const badges = [
   padding: 64px 24px 80px;
 }
 
+:root[data-theme='oscuro'] .xc-hero {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.22) 0%, var(--xchang-page-bg) 65%);
+}
+
 .xc-hero-inner {
   max-width: 1180px;
   margin: 0 auto;

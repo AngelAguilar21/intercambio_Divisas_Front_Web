@@ -379,14 +379,15 @@ function valor(campo, fila) {
 }
 
 function filaKey(fila) {
-  return (
+  const base =
     fila.ordenCompraId ||
     fila.ofertaVentaId ||
     fila.operacionInmediataId ||
     fila.depositoId ||
     fila.retiroId ||
     JSON.stringify(fila)
-  )
+
+  return `${base}-${fila.estado || ''}-${fila.fechaHora || ''}`
 }
 
 function estaExpandido(fila) {

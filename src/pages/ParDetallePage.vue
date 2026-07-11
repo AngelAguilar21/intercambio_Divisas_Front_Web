@@ -53,6 +53,15 @@
       </q-banner>
     </div>
 
+    <q-banner
+      v-if="authStore.isAuthenticated && authStore.isRestricted"
+      dense
+      rounded
+      class="xchang-banner xchang-banner--error q-mb-md"
+    >
+      Tu cuenta está restringida. Puedes consultar y retirar fondos, pero no puedes generar órdenes, ofertas ni operaciones inmediatas.
+    </q-banner>
+
     <!-- Sección de operación (US-012 a US-016) — solo usuario autenticado -->
     <div v-if="authStore.isAuthenticated" class="row q-col-gutter-md">
 

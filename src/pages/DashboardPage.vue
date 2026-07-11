@@ -1,12 +1,13 @@
 <template>
   <q-page class="q-pa-md xc-dashboard">
-    <div class="xc-block-accent xc-hero xc-enter" style="--xc-delay: 0ms">
+    <div :class="['xc-block-accent', 'xc-hero', 'xc-enter', { 'xc-hero--restricted': authStore.isRestricted }]" style="--xc-delay: 0ms">
       <div class="row items-center justify-between">
         <div>
           <div class="text-h5 text-weight-bold">Hola, {{ authStore.user?.nombreUsuario }}</div>
-          <div class="text-body2 xc-hero-sub">Este es el resumen de tu cuenta en X-Chang</div>
+          <div v-if="authStore.isRestricted" class="text-body2 xc-hero-sub">Tu cuenta está restringida. Puedes consultar información y retirar fondos, pero no puedes operar en el exchange.</div>
+          <div v-else class="text-body2 xc-hero-sub">Este es el resumen de tu cuenta en X-Chang</div>
         </div>
-        <q-badge :color="authStore.isAdmin ? 'deep-orange' : 'white'" class="xc-rol-badge">
+        <q-badge :color="authStore.isRestricted ? 'negative' : (authStore.isAdmin ? 'deep-orange' : 'white')" class="xc-rol-badge">
           {{ authStore.user?.rol }}
         </q-badge>
       </div>
@@ -154,6 +155,15 @@ onMounted(async () => {
 
 .xc-hero-sub {
   opacity: 0.85;
+}
+
+.xc-hero--restricted {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d) !important;
+  border-color: rgba(248, 113, 113, 0.55) !important;
+}
+
+.xc-hero--restricted .xc-rol-badge {
+  color: white;
 }
 
 .xc-rol-badge {

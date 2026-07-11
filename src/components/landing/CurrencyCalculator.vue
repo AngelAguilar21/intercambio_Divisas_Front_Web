@@ -149,7 +149,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { getMonedas } from '@/services/monedas'
-import { getListadoPares } from '@/services/preciosPares'
+import { getListadoPares, getSerieHistorica } from '@/services/preciosPares'
 import { urlBandera } from '@/utils/monedaBandera'
 import { formatearMonto } from '@/utils/formato'
 
@@ -227,10 +227,22 @@ async function cargarTasa() {
     tasa.value = fila ? Number(fila.mayorPrecioCompra) : null
   } catch {
     tasa.value = null
-    errorTasa.value = true
-  } finally {
-    cargandoTasa.value = false
   }
+
+  if (!tasa.value) {
+    try {
+      const { data } = await getSerieHistorica(monedaEnvia.value, monedaRecibe.value, 'UltimoDia')
+      const puntos = data?.serie || data?.puntos || data?.registros || (Array.isArray(data) ? data : [])
+      const ultimo = puntos[puntos.length - 1]
+      const valorPunto = (p) => Number(p.valor ?? p.precio ?? p.precioCierre ?? p.mayorPrecioCompra)
+      tasa.value = ultimo ? valorPunto(ultimo) || null : null
+    } catch {
+      tasa.value = null
+    }
+  }
+
+  if (!tasa.value) errorTasa.value = true
+  cargandoTasa.value = false
 }
 
 function invertirMonedas() {

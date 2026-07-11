@@ -19,6 +19,10 @@
         {{ mensaje }}
       </q-banner>
 
+      <q-banner v-if="errorMessage" dense class="xchang-banner xchang-banner--error" rounded>
+        {{ errorMessage }}
+      </q-banner>
+
       <q-btn
         type="submit"
         color="primary"
@@ -43,13 +47,17 @@ import { forgotPassword } from '@/services/auth'
 const correoElectronico = ref('')
 const loading = ref(false)
 const mensaje = ref('')
+const errorMessage = ref('')
 
 async function onSubmit() {
   loading.value = true
   mensaje.value = ''
+  errorMessage.value = ''
   try {
-    const { data } = await forgotPassword(correoElectronico.value)
+    const { data } = await forgotPassword({ correoElectronico: correoElectronico.value })
     mensaje.value = data.mensaje
+  } catch (error) {
+    errorMessage.value = error.response?.data?.mensaje || 'No se pudo enviar el enlace. Intenta de nuevo.'
   } finally {
     loading.value = false
   }

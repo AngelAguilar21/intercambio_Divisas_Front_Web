@@ -18,11 +18,11 @@
       <q-space class="xc-landing-nav-spacer" />
 
       <q-btn
-        flat
+        outline
         no-caps
-        color="dark"
+        color="primary"
         label="Iniciar sesión"
-        class="q-mr-sm"
+        class="q-mr-sm xc-login-btn"
         :to="{ name: 'login' }"
       />
       <q-btn unelevated no-caps color="primary" label="Crear cuenta" :to="{ name: 'register' }" />
@@ -78,5 +78,9 @@
   .xc-landing-nav-spacer {
     display: none;
   }
+}
+
+.xc-login-btn {
+  font-weight: 700;
 }
 </style>

@@ -43,13 +43,13 @@
           </q-item>
         </q-list>
 
-        <q-banner v-if="!detalle.puedeCancelar" dense class="bg-orange-1 text-orange-9 q-mt-sm" rounded>
+        <q-banner v-if="!detalle.puedeCancelar" dense class="xchang-banner xchang-banner--warning q-mt-sm" rounded>
           La operación ya no puede ser cancelada
         </q-banner>
       </q-card-section>
 
       <q-card-section v-if="errorMessage">
-        <q-banner dense class="bg-red-1 text-red-9" rounded>
+        <q-banner dense class="xchang-banner xchang-banner--error" rounded>
           {{ errorMessage }}
         </q-banner>
       </q-card-section>
@@ -92,10 +92,15 @@ watch(
     errorMessage.value = ''
     loading.value = true
     try {
+      if (!props.referenciaId || props.referenciaId <= 0) {
+        errorMessage.value = 'No se pudo identificar la operación a cancelar.'
+        return
+      }
+
       const { data } = await getDetalleCancelacion(props.tipoOperacion, props.referenciaId)
       detalle.value = data
     } catch (error) {
-      errorMessage.value = error.response?.data?.mensaje || 'No se pudo cargar el detalle.'
+      errorMessage.value = error.response?.data?.mensaje || error.response?.data?.error || 'No se pudo cargar el detalle.'
     } finally {
       loading.value = false
     }
@@ -114,7 +119,7 @@ async function onConfirmar() {
     emit('cancelado', data)
     emit('update:modelValue', false)
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo cancelar la operación.'
+    errorMessage.value = error.response?.data?.mensaje || error.response?.data?.error || 'No se pudo cancelar la operación.'
   } finally {
     confirming.value = false
   }

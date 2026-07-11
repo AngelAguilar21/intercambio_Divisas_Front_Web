@@ -77,10 +77,12 @@
       <!-- Columna central: Libro de órdenes (US-012) -->
       <div class="col-12 col-lg-4">
         <LibroOrdenes
+          :key="libroKey"
           ref="libroRef"
           :par-moneda-id="parMonedaId"
           :moneda-origen="monedaOrigen"
           :moneda-destino="monedaDestino"
+          :refresh-key="libroRefreshKey"
           @libro-cargado="onLibroCargado"
         />
       </div>
@@ -109,7 +111,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useBilleteraStore } from '@/stores/billetera'
@@ -131,6 +133,8 @@ const monedaDestino = computed(() => String(route.query.destino || '').toUpperCa
 
 const rango = ref('UltimoDia')
 const libroRef = ref(null)
+const libroKey = ref(0)
+const libroRefreshKey = ref(0)
 
 // Precios del libro para inicializar US-013 y US-014
 const precioInicialCompra = ref(null)
@@ -154,8 +158,14 @@ function onLibroCargado(libro) {
 }
 
 // Cuando cualquier operación se completa, refresca el libro y la billetera
-function onOperacionCompletada() {
-  libroRef.value?.cargar?.()
+async function onOperacionCompletada() {
+  libroRefreshKey.value += 1
+  libroKey.value += 1
+
+  await nextTick()
+
+  await libroRef.value?.cargar?.()
+  setTimeout(() => libroRef.value?.cargar?.(), 350)
   billeteraStore.refrescar()
 }
 </script>

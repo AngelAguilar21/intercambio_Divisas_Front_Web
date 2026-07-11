@@ -7,3 +7,11 @@ export function getHistorial(filtro = {}) {
 export function getParaExportar(filtro = {}) {
   return api.get('/historial-transacciones/exportar', { params: filtro })
 }
+
+export function exportarHistorialExcel(filtro = {}) {
+  return api.post('/historial-transacciones/exportar-excel', filtro, { responseType: 'blob' })
+}
+
+export function exportarHistorialPdf(filtro = {}) {
+  return api.post('/historial-transacciones/exportar-pdf', filtro, { responseType: 'blob' })
+}

@@ -2,7 +2,13 @@ import { api } from '@/boot/axios'
 
 export function getDetalleCancelacion(tipoOperacion, referenciaId) {
   return api.get('/Cancelacion/detalle', {
-    params: { tipoOperacion, referenciaId },
+    params: {
+      tipo: tipoOperacion,
+      id: referenciaId,
+      tipoOperacion,
+      referenciaId,
+      _ts: Date.now(),
+    },
   })
 }
 

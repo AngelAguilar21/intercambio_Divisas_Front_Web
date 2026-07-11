@@ -66,8 +66,9 @@
     <template v-if="resumen">
       <div class="xc-mc-info-row">
         <span>Tasa aplicada</span>
-        <span class="xc-figure">{{ formatearMonto(resumen.precioPromedioCompra, 4) }}</span>
+        <span class="xc-figure">{{ formatearMonto(tasaAplicada, 4) }}</span>
       </div>
+
       <div class="xc-mc-info-row">
         <span>Comisión</span>
         <span class="xc-figure">
@@ -78,6 +79,7 @@
           }}
         </span>
       </div>
+
       <div class="xc-mc-info-row xc-mc-info-row--total">
         <span>Total a recibir</span>
         <span class="xc-figure">{{ formatearMonto(totalARecibir) }} {{ monedaDestino }}</span>
@@ -99,7 +101,7 @@
         rounded
         class="xchang-banner xchang-banner--error q-mt-sm"
       >
-        Saldo insuficiente en {{ monedaOrigen }}.
+        Saldo insuficiente
       </q-banner>
     </template>
 
@@ -121,15 +123,17 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { Notify } from 'quasar'
 import { getMonedas } from '@/services/monedas'
+import { getBilletera } from '@/services/billetera'
 import { resolveParMonedaId } from '@/services/preciosPares'
 import { getResumen, confirmar } from '@/services/ventaInmediata'
 import { formatearMonto } from '@/utils/formato'
+import { normalizarMensajeError } from '@/utils/validaciones'
 
 const emit = defineEmits(['cambio-confirmado'])
 
 const monedas = ref([])
-const monedaOrigen = ref('USD')
-const monedaDestino = ref('PEN')
+const monedaOrigen = ref('PEN')
+const monedaDestino = ref('USD')
 const monto = ref(100)
 
 const parMonedaId = ref(null)
@@ -139,10 +143,15 @@ const confirmando = ref(false)
 const errorMessage = ref('')
 
 const opcionesMoneda = computed(() =>
-  monedas.value.map((m) => ({ label: m.codigoISO, value: m.codigoISO })),
+  monedas.value.map((m) => ({ label: m.codigoISO || m.codigoIso, value: m.codigoISO || m.codigoIso })),
 )
 
 const totalARecibir = computed(() => Number(resumen.value?.totalEstimadoARecibir) || 0)
+
+const tasaAplicada = computed(() => {
+  if (!Number(monto.value) || totalARecibir.value <= 0) return 0
+  return totalARecibir.value / Number(monto.value)
+})
 
 const puedeConfirmar = computed(
   () => !!resumen.value && resumen.value.saldoSuficiente && Number(monto.value) > 0,
@@ -157,6 +166,7 @@ watch([monedaOrigen, monedaDestino, monto], () => {
 
 onMounted(async () => {
   await cargarMonedas()
+  await cargarMonedaPrincipalDesdeBilletera()
   await cargarResumen()
 })
 
@@ -166,6 +176,21 @@ async function cargarMonedas() {
     monedas.value = Array.isArray(data) ? data : data.monedas || data.registros || []
   } catch {
     monedas.value = []
+  }
+}
+
+async function cargarMonedaPrincipalDesdeBilletera() {
+  try {
+    const { data } = await getBilletera()
+    const saldos = [...(data?.saldos || [])].sort((a, b) => Number(b.saldoDisponible) - Number(a.saldoDisponible))
+    const principal = saldos.find((s) => Number(s.saldoDisponible) > 0)?.codigoISO
+
+    if (principal) {
+      monedaOrigen.value = principal
+      monedaDestino.value = principal === 'USD' ? 'PEN' : 'USD'
+    }
+  } catch {
+    // Si la billetera no carga, se mantienen PEN -> USD como valores seguros por defecto.
   }
 }
 
@@ -179,13 +204,21 @@ async function cargarResumen() {
   errorMessage.value = ''
   resumen.value = null
 
-  if (monedaOrigen.value === monedaDestino.value || !Number(monto.value) || monto.value <= 0) {
+  if (monedaOrigen.value === monedaDestino.value) {
+    errorMessage.value = 'Seleccione monedas distintas.'
+    return
+  }
+
+  if (!Number(monto.value) || Number(monto.value) <= 0) {
     return
   }
 
   cargandoResumen.value = true
 
   try {
+    // Para convertir A -> B vendemos A dentro del par A/B.
+    // Ejemplo: si envías USD y recibes PEN, se usa el par USD/PEN y venta inmediata.
+    // El backend valida el saldo de la moneda origen del par, que coincide con 'Envías'.
     parMonedaId.value = await resolveParMonedaId(monedaOrigen.value, monedaDestino.value)
 
     if (!parMonedaId.value) {
@@ -200,7 +233,7 @@ async function cargarResumen() {
 
     resumen.value = data
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo calcular el resumen.'
+    errorMessage.value = normalizarMensajeError(error, 'No se pudo calcular el resumen.')
   } finally {
     cargandoResumen.value = false
   }
@@ -220,8 +253,9 @@ async function confirmarCambio() {
     Notify.create({ type: 'positive', message: 'Cambio ejecutado correctamente.' })
     resumen.value = null
     emit('cambio-confirmado', data)
+    await cargarResumen()
   } catch (error) {
-    errorMessage.value = error.response?.data?.mensaje || 'No se pudo confirmar el cambio.'
+    errorMessage.value = normalizarMensajeError(error, 'No se pudo confirmar el cambio.')
   } finally {
     confirmando.value = false
   }

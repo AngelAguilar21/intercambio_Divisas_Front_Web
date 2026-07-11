@@ -80,11 +80,6 @@
       </div>
     </div>
 
-    <div class="row q-col-gutter-md q-mt-md">
-      <div class="col-12">
-        <ModuloCambio @cambio-confirmado="onCambioConfirmado" />
-      </div>
-    </div>
 
     <div class="q-mt-md">
       <HistorialReciente ref="historialRef" />
@@ -97,7 +92,6 @@ import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import GraficoPar from '@/components/graficos/GraficoPar.vue'
 import ResumenCuenta from '@/components/dashboard/ResumenCuenta.vue'
-import ModuloCambio from '@/components/dashboard/ModuloCambio.vue'
 import HistorialReciente from '@/components/dashboard/HistorialReciente.vue'
 import { getMenuPrincipal } from '@/services/preciosPares'
 import { RANGO_OPTIONS } from '@/utils/validaciones'
@@ -112,14 +106,33 @@ const parSecundario = ref(null)
 const rangoPrincipal = ref('UltimoDia')
 const rangoSecundario = ref('UltimoDia')
 
+function normalizarGraficoSecundario(principal, secundario) {
+  if (!principal || !secundario) return secundario
+
+  const mismoPar =
+    principal.monedaOrigen === secundario.monedaOrigen &&
+    principal.monedaDestino === secundario.monedaDestino
+
+  if (!mismoPar) return secundario
+
+  return {
+    ...secundario,
+    monedaOrigen: principal.monedaDestino,
+    monedaDestino: principal.monedaOrigen,
+  }
+}
+
 onMounted(async () => {
   authStore.fetchProfile()
 
   cargandoGraficos.value = true
   try {
     const { data } = await getMenuPrincipal()
-    parPrincipal.value = data.graficoPrincipal ?? data.GraficoPrincipal ?? null
-    parSecundario.value = data.graficoSecundario ?? data.GraficoSecundario ?? null
+    const principal = data.graficoPrincipal ?? data.GraficoPrincipal ?? null
+    const secundario = data.graficoSecundario ?? data.GraficoSecundario ?? null
+
+    parPrincipal.value = principal
+    parSecundario.value = normalizarGraficoSecundario(principal, secundario)
   } catch {
     errorGraficos.value = 'No se pudo cargar la información de gráficos.'
   } finally {
@@ -127,9 +140,6 @@ onMounted(async () => {
   }
 })
 
-function onCambioConfirmado() {
-  historialRef.value?.cargar?.()
-}
 </script>
 
 <style scoped>

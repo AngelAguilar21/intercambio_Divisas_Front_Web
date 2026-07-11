@@ -7,12 +7,14 @@
       </span>
       <h1 class="xc-section-title">Mi billetera</h1>
       <div class="xc-section-bar" aria-hidden="true" />
-      <p class="xc-page-head-desc">Saldo disponible por cada moneda de tu cuenta.</p>
+      <p class="xc-page-head-desc">
+        Saldo disponible por cada moneda de tu cuenta. Desde esta pantalla puedes depositar o retirar sobre una moneda específica.
+      </p>
     </div>
 
     <div v-if="cargando" class="row q-col-gutter-md">
       <div v-for="n in 4" :key="n" class="col-12 col-sm-6 col-md-4">
-        <q-skeleton height="140px" class="xc-wallet-skeleton" />
+        <q-skeleton height="170px" class="xc-wallet-skeleton" />
       </div>
     </div>
 
@@ -47,6 +49,29 @@
             {{ formatearSaldo(saldo.saldoDisponible) }}
           </div>
           <div class="xc-wallet-label">Saldo disponible</div>
+
+          <div class="row q-col-gutter-sm q-mt-md">
+            <div class="col-6">
+              <q-btn
+                outline
+                color="primary"
+                icon="south_west"
+                label="Depositar"
+                class="full-width"
+                @click="irA('deposito', saldo.monedaId)"
+              />
+            </div>
+            <div class="col-6">
+              <q-btn
+                outline
+                color="primary"
+                icon="north_east"
+                label="Retirar"
+                class="full-width"
+                @click="irA('retiro', saldo.monedaId)"
+              />
+            </div>
+          </div>
         </q-card>
       </div>
     </div>
@@ -55,19 +80,27 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useBilleteraStore } from '@/stores/billetera'
 import { urlBandera } from '@/utils/monedaBandera'
 
+const router = useRouter()
 const billeteraStore = useBilleteraStore()
 
 const cargando = computed(() => billeteraStore.cargando && !billeteraStore.cargado)
-const saldos = computed(() => billeteraStore.saldos.filter((s) => s.saldoDisponible > 0))
+const saldos = computed(() =>
+  [...billeteraStore.saldos].sort((a, b) => Number(b.saldoDisponible) - Number(a.saldoDisponible)),
+)
 
 function formatearSaldo(valor) {
   return Number(valor).toLocaleString('es-PE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
+}
+
+function irA(nombreRuta, monedaId) {
+  router.push({ name: nombreRuta, query: { monedaId } })
 }
 
 onMounted(() => {
@@ -78,7 +111,7 @@ onMounted(() => {
 <style scoped>
 .xc-wallet-card {
   padding: 20px;
-  min-height: 140px;
+  min-height: 170px;
 }
 
 .xc-wallet-bandera {

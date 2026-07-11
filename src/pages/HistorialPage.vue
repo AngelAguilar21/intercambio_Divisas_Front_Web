@@ -86,6 +86,7 @@
               <thead>
                 <tr>
                   <th v-if="col.expandible" class="historial-expand-col"></th>
+                  <th v-if="col.tieneEstados" class="historial-expand-col"></th>
                   <th v-for="campo in col.campos" :key="campo.key">{{ campo.label }}</th>
                 </tr>
               </thead>
@@ -102,6 +103,19 @@
                         :icon="estaExpandido(fila) ? 'expand_less' : 'expand_more'"
                         @click="toggleExpandido(fila)"
                       />
+                    </td>
+                    <td v-if="col.tieneEstados" class="historial-expand-col">
+                      <q-btn
+                        dense
+                        flat
+                        round
+                        size="sm"
+                        icon="timeline"
+                        color="primary"
+                        @click="verEstados(col.key, fila[col.idKey])"
+                      >
+                        <q-tooltip>Ver historial de estados</q-tooltip>
+                      </q-btn>
                     </td>
                     <td v-for="campo in col.campos" :key="campo.key">{{ valor(campo, fila) }}</td>
                   </tr>
@@ -175,6 +189,12 @@
         </q-card>
       </div>
     </div>
+
+    <EstadosTimelineDialog
+      v-model="timelineAbierto"
+      :tipo="timelineTipo"
+      :referencia-id="timelineId"
+    />
   </q-page>
 </template>
 
@@ -182,6 +202,17 @@
 import { onMounted, reactive, ref } from 'vue'
 import { exportarHistorialExcel, exportarHistorialPdf, getHistorial } from '@/services/historial'
 import { normalizarMensajeError } from '@/utils/validaciones'
+import EstadosTimelineDialog from '@/components/historial/EstadosTimelineDialog.vue'
+
+const timelineAbierto = ref(false)
+const timelineTipo = ref('')
+const timelineId = ref(0)
+
+function verEstados(tipo, id) {
+  timelineTipo.value = tipo
+  timelineId.value = id
+  timelineAbierto.value = true
+}
 
 const opcionesPagina = [
   { label: '5', value: 5 },
@@ -198,6 +229,8 @@ const columnas = [
     key: 'OrdenesCompra',
     respuesta: 'ordenesCompra',
     titulo: 'Órdenes de compra',
+    tieneEstados: true,
+    idKey: 'ordenCompraId',
     campos: [
       { key: 'fechaHora', label: 'Fecha', fn: (r) => fmt(r.fechaHora) },
       { key: 'parMonedas', label: 'Par' },
@@ -218,6 +251,8 @@ const columnas = [
     key: 'OfertasVenta',
     respuesta: 'ofertasVenta',
     titulo: 'Ofertas de venta',
+    tieneEstados: true,
+    idKey: 'ofertaVentaId',
     campos: [
       { key: 'fechaHora', label: 'Fecha', fn: (r) => fmt(r.fechaHora) },
       { key: 'parMonedas', label: 'Par' },

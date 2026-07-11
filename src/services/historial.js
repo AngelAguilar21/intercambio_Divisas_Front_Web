@@ -15,3 +15,7 @@ export function exportarHistorialExcel(filtro = {}) {
 export function exportarHistorialPdf(filtro = {}) {
   return api.post('/historial-transacciones/exportar-pdf', filtro, { responseType: 'blob' })
 }
+
+export function getEstadosOperacion(tipo, id) {
+  return api.get(`/historial-transacciones/estados/${tipo}/${id}`)
+}

@@ -55,6 +55,23 @@
         </template>
       </q-input>
 
+      <div v-if="form.password.length > 0" class="xc-pwd-checklist q-mb-sm">
+        <div
+          v-for="req in requisitosCumplidos"
+          :key="req.label"
+          class="row items-center no-wrap q-gutter-xs xc-pwd-item"
+        >
+          <q-icon
+            :name="req.cumplido ? 'check_circle' : 'cancel'"
+            :color="req.cumplido ? 'positive' : 'negative'"
+            size="14px"
+          />
+          <span class="text-caption" :class="req.cumplido ? 'text-positive' : 'text-negative'">
+            {{ req.label }}
+          </span>
+        </div>
+      </div>
+
       <q-input
         v-model="form.confirmarPassword"
         label="Confirmar contraseña"
@@ -128,6 +145,16 @@ onMounted(async () => {
   }
 })
 
+const requisitosCumplidos = computed(() => {
+  const v = form.password
+  return [
+    { label: 'Mínimo 8 caracteres', cumplido: v.length >= 8 },
+    { label: 'Al menos una letra mayúscula', cumplido: /[A-Z]/.test(v) },
+    { label: 'Al menos un número', cumplido: /\d/.test(v) },
+    { label: 'Al menos un carácter especial', cumplido: /[^A-Za-z0-9]/.test(v) },
+  ]
+})
+
 const formularioValido = computed(
   () =>
     validarNombreUsuario(form.nombreUsuario) === true &&
@@ -169,6 +196,17 @@ async function onSubmit() {
 </script>
 
 <style scoped>
+.xc-pwd-checklist {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--xchang-surface) 80%, transparent);
+  border: 1px solid var(--xchang-border-light);
+}
+
+.xc-pwd-item {
+  margin-bottom: 2px;
+}
+
 .xc-auth-link {
   color: var(--q-primary);
   font-weight: 600;

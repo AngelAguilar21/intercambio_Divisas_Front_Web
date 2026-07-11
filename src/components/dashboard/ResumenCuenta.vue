@@ -123,13 +123,18 @@ async function cargarTasa() {
   try {
     const { data } = await getSerieHistorica('USD', 'PEN', 'UltimoDia')
     const puntos = data?.serie || data?.puntos || data?.registros || (Array.isArray(data) ? data : [])
+    const valorPunto = (p) => Number(p.valor ?? p.precio ?? p.precioCierre ?? p.mayorPrecioCompra)
 
     if (puntos.length >= 2) {
-      const valorPunto = (p) => Number(p.valor ?? p.precio ?? p.precioCierre ?? p.mayorPrecioCompra)
       const primero = valorPunto(puntos[0])
       const ultimo = valorPunto(puntos[puntos.length - 1])
-
       variacion.value = primero ? ((ultimo - primero) / primero) * 100 : null
+
+      if (!tasaActual.value && ultimo) tasaActual.value = ultimo
+    } else if (puntos.length === 1) {
+      const v = valorPunto(puntos[0])
+      if (!tasaActual.value && v) tasaActual.value = v
+      variacion.value = null
     } else {
       variacion.value = null
     }

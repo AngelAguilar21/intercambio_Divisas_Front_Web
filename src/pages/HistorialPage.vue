@@ -508,19 +508,15 @@ function descargarArchivo(response, nombreFallback) {
 <style scoped>
 .historial-wrapper {
   display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding-bottom: 10px;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .historial-columna {
-  min-width: 390px;
-  max-width: 460px;
-  flex: 0 0 420px;
+  width: 100%;
 }
 
 .historial-card {
-  height: 620px;
   display: flex;
   flex-direction: column;
 }

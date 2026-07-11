@@ -13,6 +13,9 @@
 import { ref } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppDrawer from '@/components/layout/AppDrawer.vue'
+import { useInactivityTimer } from '@/composables/useInactivityTimer'
 
 const leftDrawerOpen = ref(false)
+
+useInactivityTimer()
 </script>
